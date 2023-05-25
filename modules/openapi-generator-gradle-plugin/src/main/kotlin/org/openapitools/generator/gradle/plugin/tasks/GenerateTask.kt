@@ -36,7 +36,7 @@ import org.gradle.kotlin.dsl.listProperty
 import org.gradle.kotlin.dsl.mapProperty
 import org.gradle.kotlin.dsl.property
 import org.openapitools.codegen.CodegenConstants
-import org.openapitools.codegen.DefaultGenerator
+import org.openapitools.codegen.Generator
 import org.openapitools.codegen.config.CodegenConfigurator
 import org.openapitools.codegen.config.GlobalSettings
 import org.openapitools.codegen.config.MergedSpecBuilder
@@ -521,6 +521,13 @@ open class GenerateTask : DefaultTask() {
     @Input
     val cleanupOutput = project.objects.property<Boolean>()
 
+    /**
+     * Defines the codegen name or class. If not specified org.openapitools.codegen.DefaultGenerator will be used.
+     */
+    @Optional
+    @Input
+    val codegenName = project.objects.property<String>()
+
     private fun <T : Any?> Property<T>.ifNotEmpty(block: Property<T>.(T) -> Unit) {
         if (isPresent) {
             val item: T? = get()
@@ -838,14 +845,32 @@ open class GenerateTask : DefaultTask() {
                 val out = services.get(StyledTextOutputFactory::class.java).create("openapi")
                 out.withStyle(StyledTextOutput.Style.Success)
 
-                DefaultGenerator().opts(clientOptInput).generate()
-
-                out.println("Successfully generated code to ${outputDir.get()}")
+                val selectedCodegen = selectCodegen()
+                if (selectedCodegen != null) {
+                    selectedCodegen.opts(clientOptInput).generate()
+                    out.println("Successfully generated code to ${outputDir.get()}")
+                } else {
+                    out.println("Error: the supplied codegen name or class does not inherit from org.openapitools.codegen.DefaultGenerator.")
+                }
             } catch (e: RuntimeException) {
                 throw GradleException("Code generation failed.", e)
             }
         } finally {
             GlobalSettings.reset()
+        }
+    }
+
+    private fun selectCodegen(): Generator? {
+        var genName = "default"
+        codegenName.ifNotEmpty { generator ->
+            genName = generator
+        }
+
+        val codegenInst = Class.forName(genName).getDeclaredConstructor().newInstance()
+        return if (codegenInst is Generator) {
+            codegenInst
+        } else {
+            null
         }
     }
 }

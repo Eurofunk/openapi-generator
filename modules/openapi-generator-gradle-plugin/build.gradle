@@ -12,8 +12,8 @@ plugins {
     id("signing")
 }
 
-group = "org.openapitools"
-version = "$openApiGeneratorVersion"
+group = "org.openapi.generator"
+version = "$openApiGeneratorGradlePluginVersion"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 description = """
@@ -91,6 +91,19 @@ gradlePlugin {
             displayName = "OpenAPI Generator Gradle Plugin"
             implementationClass = "org.openapitools.generator.gradle.plugin.OpenApiGeneratorPlugin"
             tags.addAll("openapi-3.0", "openapi-2.0", "openapi", "swagger", "codegen", "sdk")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = uri("NEXUS_URL")
+            allowInsecureProtocol = true
+            credentials {
+                username = "unknown"
+                password = "unknown"
+            }
         }
     }
 }
