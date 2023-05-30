@@ -537,6 +537,13 @@ open class GenerateTask : DefaultTask() {
     @Input
     val dryRun = project.objects.property<Boolean>()
 
+    /**
+     * Defines whether metadata should be generated.
+     */
+    @Optional
+    @Input
+    val generateMetadata = project.objects.property<Boolean>()
+
     private fun <T : Any?> Property<T>.ifNotEmpty(block: Property<T>.(T) -> Unit) {
         if (isPresent) {
             val item: T? = get()
@@ -856,6 +863,12 @@ open class GenerateTask : DefaultTask() {
 
                 val selectedCodegen = selectCodegen()
                 if (selectedCodegen != null) {
+                    var generateMetadataSetting = true;
+                    generateMetadata.ifNotEmpty { setting ->
+                        generateMetadataSetting = setting
+                    }
+                    selectedCodegen.setGenerateMetadata(generateMetadataSetting)
+
                     selectedCodegen.opts(clientOptInput).generate()
                     out.println("Successfully generated code to ${outputDir.get()}")
                 } else {

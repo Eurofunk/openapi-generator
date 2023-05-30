@@ -27,5 +27,7 @@ public interface Generator {
 
     String getName();
 
+    void setGenerateMetadata(Boolean generateMetadata);
+
     void displayDryRunResults();
 }
