@@ -4,7 +4,7 @@
         <groupId>org.openapitools</groupId>
         <artifactId>openapi-generator-project</artifactId>
         <!-- RELEASE_VERSION -->
-        <version>7.5.0</version>
+        <version>7.5.0-mod</version>
         <!-- /RELEASE_VERSION -->
         <relativePath>../..</relativePath>
     </parent>
@@ -394,7 +394,7 @@
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>openapi-generator-core</artifactId>
-            <version>${project.parent.version}</version>
+            <version>7.5.0-mod</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -444,8 +444,8 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>nexus-local</id>
+            <url>URL</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
