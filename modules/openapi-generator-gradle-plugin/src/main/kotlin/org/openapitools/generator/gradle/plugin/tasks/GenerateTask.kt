@@ -530,6 +530,13 @@ open class GenerateTask : DefaultTask() {
     @Input
     val codegenName = project.objects.property<String>()
 
+    /**
+     * Defines whether the generator should run in dry-run mode.
+     */
+    @Optional
+    @Input
+    val dryRun = project.objects.property<Boolean>()
+
     private fun <T : Any?> Property<T>.ifNotEmpty(block: Property<T>.(T) -> Unit) {
         if (isPresent) {
             val item: T? = get()
@@ -870,24 +877,32 @@ open class GenerateTask : DefaultTask() {
             genName = generator
         }
 
-        var selectedCodegen: Generator = DefaultGenerator()
-        try {
-            val availableCodegens = ServiceLoader.load(Generator::class.java)
-            availableCodegens.forEach { item: Generator ->
-                if (item.name.equals(genName)) {
-                    selectedCodegen = item
-                }
-            }
-        } catch (e: ServiceConfigurationError) {
-            throw GradleException("Could not load codegen {$genName} via SPI.", e)
+        var dryRunSetting = false
+        dryRun.ifNotEmpty { setting ->
+            dryRunSetting = setting
         }
 
-        // wanted a different codegen but did not find it as service
-        if (genName != "default" && selectedCodegen.javaClass == DefaultGenerator::class.java) {
+        var selectedCodegen: Generator = DefaultGenerator()
+        if (genName != "default" && !genName.contains(".")) {
+            try {
+                val availableCodegens = ServiceLoader.load(Generator::class.java)
+                availableCodegens.forEach { item: Generator ->
+                    if (item.name.equals(genName)) {
+                        // since ServiceLoader does not let us use constructors with parameters
+                        // we just collect the right name and then instantiate the class ourselves
+                        genName = item::class.java.name
+                    }
+                }
+            } catch (e: ServiceConfigurationError) {
+                throw GradleException("Could not load codegen {$genName} via SPI.", e)
+            }
+        }
+
+        if (genName.contains(".")) {
             try {
                 val codegenInst = Class.forName(genName)
-                    .getDeclaredConstructor()
-                    .newInstance()
+                    .getDeclaredConstructor(Boolean::class.javaObjectType)
+                    .newInstance(dryRunSetting)
                 if (codegenInst is Generator) {
                     selectedCodegen = codegenInst
                 } else {
@@ -901,7 +916,7 @@ open class GenerateTask : DefaultTask() {
             } catch (e: NoSuchMethodException) {
                 throw GradleException(
                     "Selected codegen class {$genName} does not have a suitable constructor. "
-                        + "Have you selected the correct class?",
+                            + "Have you selected the correct class?",
                     e
                 )
             }

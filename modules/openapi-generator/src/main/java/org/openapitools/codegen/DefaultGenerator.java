@@ -958,42 +958,7 @@ public class DefaultGenerator implements Generator {
         generateSupportingFiles(files, bundle);
 
         if (dryRun) {
-            boolean verbose = Boolean.parseBoolean(GlobalSettings.getProperty("verbose"));
-            StringBuilder sb = new StringBuilder();
-
-            sb.append(System.lineSeparator()).append(System.lineSeparator());
-            sb.append("Dry Run Results:");
-            sb.append(System.lineSeparator()).append(System.lineSeparator());
-
-            Map<String, DryRunStatus> dryRunStatusMap = ((DryRunTemplateManager) this.templateProcessor).getDryRunStatusMap();
-
-            dryRunStatusMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-                DryRunStatus status = entry.getValue();
-                try {
-                    status.appendTo(sb);
-                    sb.append(System.lineSeparator());
-                    if (verbose) {
-                        sb.append("  ")
-                                .append(StringUtils.rightPad(status.getState().getDescription(), 20, "."))
-                                .append(" ").append(status.getReason())
-                                .append(System.lineSeparator());
-                    }
-                } catch (IOException e) {
-                    LOGGER.debug("Unable to document dry run status for {}.", entry.getKey());
-                }
-            });
-
-            sb.append(System.lineSeparator()).append(System.lineSeparator());
-            sb.append("States:");
-            sb.append(System.lineSeparator()).append(System.lineSeparator());
-
-            for (DryRunStatus.State state : DryRunStatus.State.values()) {
-                sb.append("  - ").append(state.getShortDisplay()).append(" ").append(state.getDescription()).append(System.lineSeparator());
-            }
-
-            sb.append(System.lineSeparator());
-
-            LOGGER.error(sb.toString());
+            displayDryRunResults();
         } else {
             // This exists here rather than in the method which generates supporting files to avoid accidentally adding files after this metadata.
             if (generateSupportingFiles) {
@@ -1008,6 +973,46 @@ public class DefaultGenerator implements Generator {
         GlobalSettings.reset();
 
         return files;
+    }
+
+    @Override
+    public void displayDryRunResults() {
+        boolean verbose = Boolean.parseBoolean(GlobalSettings.getProperty("verbose"));
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(System.lineSeparator()).append(System.lineSeparator());
+        sb.append("Dry Run Results:");
+        sb.append(System.lineSeparator()).append(System.lineSeparator());
+
+        Map<String, DryRunStatus> dryRunStatusMap = ((DryRunTemplateManager) this.templateProcessor).getDryRunStatusMap();
+
+        dryRunStatusMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            DryRunStatus status = entry.getValue();
+            try {
+                status.appendTo(sb);
+                sb.append(System.lineSeparator());
+                if (verbose) {
+                    sb.append("  ")
+                            .append(StringUtils.rightPad(status.getState().getDescription(), 20, "."))
+                            .append(" ").append(status.getReason())
+                            .append(System.lineSeparator());
+                }
+            } catch (IOException e) {
+                LOGGER.debug("Unable to document dry run status for {}.", entry.getKey());
+            }
+        });
+
+        sb.append(System.lineSeparator()).append(System.lineSeparator());
+        sb.append("States:");
+        sb.append(System.lineSeparator()).append(System.lineSeparator());
+
+        for (DryRunStatus.State state : DryRunStatus.State.values()) {
+            sb.append("  - ").append(state.getShortDisplay()).append(" ").append(state.getDescription()).append(System.lineSeparator());
+        }
+
+        sb.append(System.lineSeparator());
+
+        LOGGER.error(sb.toString());
     }
 
     private void processUserDefinedTemplates() {

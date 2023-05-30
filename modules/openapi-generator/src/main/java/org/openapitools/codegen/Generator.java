@@ -26,4 +26,6 @@ public interface Generator {
     List<File> generate();
 
     String getName();
+
+    void displayDryRunResults();
 }
