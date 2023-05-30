@@ -95,6 +95,7 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
                     verbose.set(generate.verbose)
                     validateSpec.set(generate.validateSpec)
                     generatorName.set(generate.generatorName)
+                    codegenName.set(generate.codegenName)
                     outputDir.set(generate.outputDir)
                     inputSpec.set(generate.inputSpec)
                     inputSpecRootDirectory.set(generate.inputSpecRootDirectory)
