@@ -12,7 +12,7 @@ plugins {
     id("signing")
 }
 
-group = "org.openapitools"
+group = "org.openapi.generator"
 version = "$openApiGeneratorVersion"
 ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
@@ -32,10 +32,13 @@ java {
 
 repositories {
     mavenLocal()
-    mavenCentral()
     maven {
-        name = "Sonatype Snapshots"
-        url "https://oss.sonatype.org/content/repositories/snapshots/"
+        url = uri("URL")
+        allowInsecureProtocol = true
+        metadataSources {
+            mavenPom()
+            artifact()
+        }
     }
 }
 
@@ -91,6 +94,19 @@ gradlePlugin {
             displayName = "OpenAPI Generator Gradle Plugin"
             implementationClass = "org.openapitools.generator.gradle.plugin.OpenApiGeneratorPlugin"
             tags.addAll("openapi-3.0", "openapi-2.0", "openapi", "swagger", "codegen", "sdk")
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            url = uri("NEXUS_URL")
+            allowInsecureProtocol = true
+            credentials {
+                username = "unknown"
+                password = "unknown"
+            }
         }
     }
 }
