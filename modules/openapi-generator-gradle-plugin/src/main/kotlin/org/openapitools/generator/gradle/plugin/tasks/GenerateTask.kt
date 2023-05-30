@@ -42,9 +42,11 @@ import org.gradle.kotlin.dsl.property
 import org.gradle.util.GradleVersion
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.DefaultGenerator
+import org.openapitools.codegen.Generator
 import org.openapitools.codegen.config.CodegenConfigurator
 import org.openapitools.codegen.config.GlobalSettings
 import org.openapitools.codegen.config.MergedSpecBuilder
+import java.util.*
 
 /**
  * A task which generates the desired code.
@@ -575,6 +577,13 @@ open class GenerateTask @Inject constructor(private val objectFactory: ObjectFac
     @Input
     val dryRun = project.objects.property<Boolean>()
 
+    /**
+     * Defines the codegen name or class. If not specified org.openapitools.codegen.DefaultGenerator will be used.
+     */
+    @Optional
+    @Input
+    val codegenName = project.objects.property<String>()
+
     private fun <T : Any?> Property<T>.ifNotEmpty(block: Property<T>.(T) -> Unit) {
         if (isPresent) {
             val item: T? = get()
@@ -950,15 +959,67 @@ open class GenerateTask @Inject constructor(private val objectFactory: ObjectFac
                 val out = services.get(StyledTextOutputFactory::class.java).create("openapi")
                 out.withStyle(StyledTextOutput.Style.Success)
 
-                DefaultGenerator(dryRunSetting).opts(clientOptInput).generate()
-
-                out.println("Successfully generated code to ${outputDir.get()}")
+                val selectedCodegen = selectCodegen(dryRunSetting)
+                if (selectedCodegen != null) {
+                    selectedCodegen.opts(clientOptInput).generate()
+                    out.println("Successfully generated code to ${outputDir.get()}")
+                } else {
+                    throw GradleException("The supplied codegen name or class does implement org.openapitools.codegen.Generator.")
+                }
+            } catch (e: GradleException) {
+                throw e
             } catch (e: RuntimeException) {
                 throw GradleException("Code generation failed.", e)
             }
         } finally {
             GlobalSettings.reset()
         }
+    }
+
+    private fun selectCodegen(dryRunSetting: Boolean): Generator? {
+        var genName = "default"
+        codegenName.ifNotEmpty { generator ->
+            genName = generator
+        }
+
+        var selectedCodegen: Generator = DefaultGenerator(dryRunSetting)
+        try {
+            val availableCodegens = ServiceLoader.load(Generator::class.java)
+            availableCodegens.forEach { item: Generator ->
+                if (item.name.equals(genName)) {
+                    selectedCodegen = item
+                }
+            }
+        } catch (e: ServiceConfigurationError) {
+            throw GradleException("Could not load codegen {$genName} via SPI.", e)
+        }
+
+        // wanted a different codegen but did not find it as service
+        if (genName != "default" && selectedCodegen.javaClass == DefaultGenerator::class.java) {
+            try {
+                val codegenInst = Class.forName(genName)
+                    .getDeclaredConstructor()
+                    .newInstance(dryRunSetting)
+                if (codegenInst is Generator) {
+                    selectedCodegen = codegenInst
+                } else {
+                    return null
+                }
+            } catch (e: ClassNotFoundException) {
+                throw GradleException(
+                    "Selected codegen class {$genName} could not be found.",
+                    e
+                )
+            } catch (e: NoSuchMethodException) {
+                throw GradleException(
+                    "Selected codegen class {$genName} does not have a suitable constructor. "
+                        + "Have you selected the correct class?",
+                    e
+                )
+            }
+        }
+
+        return selectedCodegen
     }
 }
 
