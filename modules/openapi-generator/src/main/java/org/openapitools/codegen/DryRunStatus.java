@@ -9,7 +9,7 @@ import java.util.Locale;
 /**
  * Holds details about a file's write status for display via the --dry-run option of CLI
  */
-@Getter class DryRunStatus {
+@Getter public class DryRunStatus {
     /**
      * -- GETTER --
      *  Gets the target path of the file write operation
@@ -19,7 +19,7 @@ import java.util.Locale;
     private final Path path;
     /**
      * -- GETTER --
-     *  Gets the 
+     *  Gets the
      *  as determined by the generator's workflow
      *
      * @return A {@link State} enum detailing the expected operation of the generator's workflow
@@ -27,7 +27,7 @@ import java.util.Locale;
     private State state;
     /**
      * -- GETTER --
-     *  Gets the reason for the file's 
+     *  Gets the reason for the file's
      *
      * @return A human-readable string which explains why this file's dry-run resulted in the defined {@link State}
      */
@@ -110,9 +110,11 @@ import java.util.Locale;
     /**
      * Represents the possible states of a file write operation as determined by the Generator
      */
-    @Getter enum State {
+    @Getter public enum State {
         Write("w", "Write"),
         WriteIfNewer("n", "Write if New/Updated"),
+        Updated("u", "Updated as content has changed"),
+        Uptodate("t", "File is up-to-date"),
         Ignored("i", "Ignored"),
         SkippedOverwrite("s", "Skipped Overwrite"),
         Skipped("k", "Skipped by user option(s)"),
