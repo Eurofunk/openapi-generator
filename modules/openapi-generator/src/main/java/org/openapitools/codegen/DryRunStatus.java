@@ -7,7 +7,7 @@ import java.util.Locale;
 /**
  * Holds details about a file's write status for display via the --dry-run option of CLI
  */
-class DryRunStatus {
+public class DryRunStatus {
     private Path path;
     private State state;
     private String reason;
@@ -116,9 +116,11 @@ class DryRunStatus {
     /**
      * Represents the possible states of a file write operation as determined by the Generator
      */
-    enum State {
+    public enum State {
         Write("w", "Write"),
         WriteIfNewer("n", "Write if New/Updated"),
+        Updated("u", "Updated as content has changed"),
+        Uptodate("t", "File is up-to-date"),
         Ignored("i", "Ignored"),
         SkippedOverwrite("s", "Skipped Overwrite"),
         Skipped("k", "Skipped by user option(s)"),
