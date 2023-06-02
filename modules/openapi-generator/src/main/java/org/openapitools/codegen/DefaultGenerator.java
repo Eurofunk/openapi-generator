@@ -95,6 +95,7 @@ public class DefaultGenerator implements Generator {
     private String basePathWithoutHost;
     private String contextPath;
     private Map<String, String> generatorPropertyDefaults = new HashMap<>();
+    private boolean hasChanges;
     protected TemplateProcessor templateProcessor = null;
 
     private List<TemplateDefinition> userDefinedTemplates = new ArrayList<>();
@@ -107,11 +108,16 @@ public class DefaultGenerator implements Generator {
     public DefaultGenerator(Boolean dryRun) {
         this.dryRun = Boolean.TRUE.equals(dryRun);
         LOGGER.info("Generating with dryRun={}", this.dryRun);
+        this.hasChanges = false;
     }
 
     @Override
     public String getName() {
         return "default";
+    }
+
+    public boolean hasChanges() {
+        return this.hasChanges;
     }
 
     @SuppressWarnings("deprecation")
@@ -126,25 +132,22 @@ public class DefaultGenerator implements Generator {
         }
 
         TemplateManagerOptions templateManagerOptions = new TemplateManagerOptions(this.config.isEnableMinimalUpdate(), this.config.isSkipOverwrite());
+        TemplatingEngineAdapter templatingEngine = this.config.getTemplatingEngine();
 
-        if (this.dryRun) {
-            this.templateProcessor = new DryRunTemplateManager(templateManagerOptions);
-        } else {
-            TemplatingEngineAdapter templatingEngine = this.config.getTemplatingEngine();
-
-            if (templatingEngine instanceof MustacheEngineAdapter) {
-                MustacheEngineAdapter mustacheEngineAdapter = (MustacheEngineAdapter) templatingEngine;
-                mustacheEngineAdapter.setCompiler(this.config.processCompiler(mustacheEngineAdapter.getCompiler()));
-            }
-
-            TemplatePathLocator commonTemplateLocator = new CommonTemplateContentLocator();
-            TemplatePathLocator generatorTemplateLocator = new GeneratorTemplateContentLocator(this.config);
-            this.templateProcessor = new TemplateManager(
-                    templateManagerOptions,
-                    templatingEngine,
-                    new TemplatePathLocator[]{generatorTemplateLocator, commonTemplateLocator}
-            );
+        if (templatingEngine instanceof MustacheEngineAdapter) {
+            MustacheEngineAdapter mustacheEngineAdapter = (MustacheEngineAdapter) templatingEngine;
+            mustacheEngineAdapter.setCompiler(this.config.processCompiler(mustacheEngineAdapter.getCompiler()));
         }
+
+        TemplatePathLocator commonTemplateLocator = new CommonTemplateContentLocator();
+        TemplatePathLocator generatorTemplateLocator = new GeneratorTemplateContentLocator(this.config);
+
+        this.templateProcessor = new TemplateManager(
+                templateManagerOptions,
+                templatingEngine,
+                new TemplatePathLocator[]{generatorTemplateLocator, commonTemplateLocator},
+                this.dryRun
+        );
 
         String ignoreFileLocation = this.config.getIgnoreFilePathOverride();
         if (ignoreFileLocation != null) {
@@ -958,8 +961,22 @@ public class DefaultGenerator implements Generator {
         Map<String, Object> bundle = buildSupportFileBundle(allOperations, allModels);
         generateSupportingFiles(files, bundle);
 
+        Map<String, DryRunStatus> fileStatusMap;
+        if (this.templateProcessor instanceof TemplateManager) {
+            fileStatusMap = ((TemplateManager) this.templateProcessor).getFileStatusMap();
+        } else {
+            fileStatusMap = new HashMap<>();
+        }
+
+        this.hasChanges = fileStatusMap.entrySet().stream().anyMatch(entry -> {
+            DryRunStatus entryValue = entry.getValue();
+            DryRunStatus.State state = entryValue.getState();
+
+            return state.equals(DryRunStatus.State.Updated) || state.equals(DryRunStatus.State.Write);
+        });
+
         if (dryRun) {
-            displayDryRunResults();
+            displayDryRunResults(fileStatusMap);
         } else {
             // This exists here rather than in the method which generates supporting files to avoid accidentally adding files after this metadata.
             if (generateSupportingFiles) {
@@ -977,7 +994,7 @@ public class DefaultGenerator implements Generator {
     }
 
     @Override
-    public void displayDryRunResults() {
+    public void displayDryRunResults(Map<String, DryRunStatus> fileStatusMap) {
         boolean verbose = Boolean.parseBoolean(GlobalSettings.getProperty("verbose"));
         StringBuilder sb = new StringBuilder();
 
@@ -985,9 +1002,7 @@ public class DefaultGenerator implements Generator {
         sb.append("Dry Run Results:");
         sb.append(System.lineSeparator()).append(System.lineSeparator());
 
-        Map<String, DryRunStatus> dryRunStatusMap = ((DryRunTemplateManager) this.templateProcessor).getDryRunStatusMap();
-
-        dryRunStatusMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+        fileStatusMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
             DryRunStatus status = entry.getValue();
             try {
                 status.appendTo(sb);

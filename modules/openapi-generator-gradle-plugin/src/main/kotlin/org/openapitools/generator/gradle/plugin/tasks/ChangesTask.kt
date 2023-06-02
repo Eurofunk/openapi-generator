@@ -18,66 +18,29 @@ package org.openapitools.generator.gradle.plugin.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.kotlin.dsl.property
 import org.openapitools.codegen.config.CodegenConfigurator
 import org.openapitools.codegen.config.GlobalSettings
 import org.openapitools.codegen.config.MergedSpecBuilder
 
 /**
- * A task which generates the desired code.
+ * A task which checks if there are changes to the generated code.
  *
  * Example (CLI):
  *
- * ./gradlew -q openApiGenerate --input=/path/to/file
- *
- * @author Jim Schubert
+ * ./gradlew -q openApiCheck --input=/path/to/file
  */
 @Suppress("UnstableApiUsage")
 @CacheableTask
-open class GenerateTask : CommonGenerateCheckTask() {
-    /**
-     * Specifies if the existing files should be overwritten during the generation.
-     */
-    @Optional
-    @Input
-    val skipOverwrite = project.objects.property<Boolean?>()
-
-    /**
-     * Defines whether the output dir should be cleaned up before generating the output.
-     *
-     */
-    @Optional
-    @Input
-    val cleanupOutput = project.objects.property<Boolean>()
-
-    /**
-     * Defines whether the generator should run in dry-run mode.
-     */
-    @Optional
-    @Input
-    val dryRun = project.objects.property<Boolean>()
-
-    @Suppress("unused")
+open class ChangesTask : CommonGenerateCheckTask() {
     @TaskAction
-    open fun doWork() {
+    fun doWork() {
         inputSpecRootDirectory.ifNotEmpty { inputSpecRootDirectoryValue -> {
             inputSpec.set(MergedSpecBuilder(inputSpecRootDirectoryValue, mergedFileName.get()).buildMergedSpec())
             logger.info("Merge input spec would be used - {}", inputSpec.get())
         }}
-
-        cleanupOutput.ifNotEmpty { cleanup ->
-            if (cleanup) {
-                project.delete(outputDir)
-                val out = services.get(StyledTextOutputFactory::class.java).create("openapi")
-                out.withStyle(StyledTextOutput.Style.Success)
-                out.println("Cleaned up output directory ${outputDir.get()} before code generation (cleanupOutput set to true).")
-            }
-        }
 
         val configurator: CodegenConfigurator = if (configFile.isPresent) {
             CodegenConfigurator.fromFile(configFile.get())
@@ -85,17 +48,9 @@ open class GenerateTask : CommonGenerateCheckTask() {
 
         try {
             processConfig(configurator)
-
-            skipOverwrite.ifNotEmpty { value ->
-                configurator.setSkipOverwrite(value ?: false)
-            }
             var generateMetadataSetting = true;
             generateMetadata.ifNotEmpty { setting ->
                 generateMetadataSetting = setting
-            }
-            var dryRunSetting = false
-            dryRun.ifNotEmpty { setting ->
-                dryRunSetting = setting
             }
 
             val clientOptInput = configurator.toClientOptInput()
@@ -105,12 +60,17 @@ open class GenerateTask : CommonGenerateCheckTask() {
                 val out = services.get(StyledTextOutputFactory::class.java).create("openapi")
                 out.withStyle(StyledTextOutput.Style.Success)
 
-                val selectedCodegen = selectCodegen(dryRunSetting)
+                val selectedCodegen = selectCodegen(true)
                 if (selectedCodegen != null) {
                     selectedCodegen.setGenerateMetadata(generateMetadataSetting)
 
-                    selectedCodegen.opts(clientOptInput).generate()
-                    out.println("Successfully generated code to ${outputDir.get()}")
+                    val gen = selectedCodegen.opts(clientOptInput)
+                    gen.generate()
+                    if (gen.hasChanges()) {
+                        throw GradleException("There were changes to the generated code.")
+                    } else {
+                        out.println("There were no changes to the generated code.")
+                    }
                 } else {
                     throw GradleException("The supplied codegen name or class does implement org.openapitools.codegen.Generator.")
                 }
