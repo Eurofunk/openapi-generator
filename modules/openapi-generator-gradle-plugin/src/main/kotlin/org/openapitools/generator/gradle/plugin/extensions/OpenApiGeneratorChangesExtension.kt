@@ -1,6 +1,5 @@
 /*
  * Copyright 2018 OpenAPI-Generator Contributors (https://openapi-generator.tech)
- * Copyright 2018 SmartBear Software
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +14,12 @@
  * limitations under the License.
  */
 
-package org.openapitools.codegen;
+package org.openapitools.generator.gradle.plugin.extensions
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
+import org.gradle.api.Project
 
-public interface Generator {
-    Generator opts(ClientOptInput opts);
-
-    List<File> generate();
-
-    String getName();
-
-    void setGenerateMetadata(Boolean generateMetadata);
-
-    void displayDryRunResults(Map<String, DryRunStatus> fileStatusMap);
-
-    boolean hasChanges();
+/**
+ * Gradle project level extension object definition for the `changes` task
+ */
+open class OpenApiGeneratorChangesExtension(project: Project) : OpenApiGeneratorCommonGenerateChangesExtension(project) {
 }
