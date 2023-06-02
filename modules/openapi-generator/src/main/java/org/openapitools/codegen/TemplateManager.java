@@ -24,6 +24,11 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
     private final TemplateManagerOptions options;
     private final TemplatingEngineAdapter engineAdapter;
     private final TemplatePathLocator[] templateLoaders;
+    private final Boolean dryRun;
+    private final Map<String, DryRunStatus> fileStatusMap = new HashMap<>();
+
+    private final Map<String, Map<String, Object>> capturedTemplateData = new HashMap<>();
+    private boolean recordTemplateData = false;
 
     private final Logger LOGGER = LoggerFactory.getLogger(TemplateManager.class);
 
@@ -41,6 +46,26 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
         this.options = options;
         this.engineAdapter = engineAdapter;
         this.templateLoaders = templateLoaders;
+        this.dryRun = false;
+    }
+
+    /**
+     * Constructs a new instance of a {@link TemplateManager}
+     *
+     * @param options The {@link TemplateManagerOptions} for reading and writing templates
+     * @param engineAdapter The adaptor to underlying templating engine
+     * @param templateLoaders Loaders which define where we look for templates
+     * @param dryRun whether files should be actually written
+     */
+    public TemplateManager(
+            TemplateManagerOptions options,
+            TemplatingEngineAdapter engineAdapter,
+            TemplatePathLocator[] templateLoaders,
+            Boolean dryRun) {
+        this.options = options;
+        this.engineAdapter = engineAdapter;
+        this.templateLoaders = templateLoaders;
+        this.dryRun = dryRun;
     }
 
     private String getFullTemplateFile(String name) {
@@ -158,6 +183,10 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
      */
     @Override
     public File write(Map<String, Object> data, String template, File target) throws IOException {
+        if (recordTemplateData) {
+            this.capturedTemplateData.put(target.getAbsolutePath(), data);
+        }
+
         if (this.engineAdapter.handlesFile(template)) {
             // Only pass files with valid endings through template engine
             String templateContent = this.engineAdapter.compileTemplate(this, data, template);
@@ -170,12 +199,28 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
 
     @Override
     public void ignore(Path path, String context) {
-        LOGGER.info("Ignored {} ({})", path, context);
+        fileStatusMap.put(path.toString(),
+                new DryRunStatus(
+                        path,
+                        DryRunStatus.State.Ignored,
+                        context
+                ));
+        if (!dryRun) {
+            LOGGER.info("Ignored {} ({})", path, context);
+        }
     }
 
     @Override
     public void skip(Path path, String context) {
-        LOGGER.info("Skipped {} ({})", path, context);
+        DryRunStatus status = new DryRunStatus(path, DryRunStatus.State.Skipped, context);
+        if (this.options.isSkipOverwrite() && path.toFile().exists()) {
+            status.setState(DryRunStatus.State.SkippedOverwrite);
+        }
+        fileStatusMap.put(path.toString(), status);
+
+        if (!dryRun) {
+            LOGGER.info("Skipped {} ({})", path, context);
+        }
     }
 
     /**
@@ -205,43 +250,99 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
     public File writeToFile(String filename, byte[] contents) throws IOException {
         // Use Paths.get here to normalize path (for Windows file separator, space escaping on Linux/Mac, etc)
         File outputFile = Paths.get(filename).toFile();
+        DryRunStatus status = new DryRunStatus(outputFile.toPath());
+        File tempFile = null;
+        String tempFilename = filename + ".tmp";
 
-        if (this.options.isMinimalUpdate()) {
-            String tempFilename = filename + ".tmp";
-            File tempFile = null;
-            try {
-                tempFile = writeToFileRaw(tempFilename, contents);
-                if (!filesEqual(tempFile, outputFile)) {
-                    LOGGER.info("writing file {}", filename);
-                    Files.move(tempFile.toPath(), outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    tempFile = null;
+        try {
+            tempFile = writeToFileRaw(tempFilename, contents);
+            if (!filesEqual(tempFile, outputFile)) {
+                if (outputFile.exists()) {
+                    if (this.options.isSkipOverwrite()) {
+                        status.setState(DryRunStatus.State.SkippedOverwrite);
+                    } else {
+                        status.setState(DryRunStatus.State.Updated);
+                    }
                 } else {
-                    LOGGER.info("skipping unchanged file {}", filename);
+                    status.setState(DryRunStatus.State.Write);
                 }
-            } finally {
-                if (tempFile != null && tempFile.exists()) {
-                    try {
-                        Files.delete(tempFile.toPath());
-                    } catch (Exception ex) {
-                        LOGGER.error("Error removing temporary file {}", tempFile, ex);
+                if (!dryRun) {
+                    if (this.options.isSkipOverwrite() && outputFile.exists()) {
+                        LOGGER.info("skip overwrite of file {}", filename);
+                    } else {
+                        LOGGER.info("writing file {}", filename);
+                        Files.move(tempFile.toPath(), outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        tempFile = null;
+                    }
+                }
+            } else {
+                status.setState(DryRunStatus.State.Uptodate);
+                if (!dryRun) {
+                    if (this.options.isMinimalUpdate()) {
+                        LOGGER.info("skipping unchanged file {}", filename);
+                    } else if (!this.options.isSkipOverwrite()) {
+                        Files.move(tempFile.toPath(), outputFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                        tempFile = null;
+                    } else {
+                        LOGGER.info("skip overwrite of file {}", filename);
                     }
                 }
             }
-        } else {
-            LOGGER.info("writing file {}", filename);
-            outputFile = writeToFileRaw(filename, contents);
+        } catch (IOException e) {
+            status.setState(DryRunStatus.State.Error);
+            throw e;
+        } finally {
+            fileStatusMap.put(filename, status);
+            if (tempFile != null && tempFile.exists()) {
+                try {
+                    Files.delete(tempFile.toPath());
+                } catch (Exception ex) {
+                    LOGGER.error("Error removing temporary file {}", tempFile, ex);
+                }
+            }
         }
 
         return outputFile;
     }
 
+    @Override
+    public void error(Path path, String context) {
+        fileStatusMap.put(path.toString(), new DryRunStatus(path, DryRunStatus.State.Error));
+    }
+
+    /**
+     * Enable capturing of data being passed to the files as they are being written.<br>
+     * Call this method <b><u>before</u></b> calling {@link Generator#generate()}.
+     */
+    public TemplateManager enableTemplateDataCapturing() {
+        recordTemplateData = true;
+        return this;
+    }
+
+    /**
+     * Retrieve the captured template data for a specific file. Capturing must have
+     * been enabled via {@link #enableTemplateDataCapturing()} prior to generation.<br>
+     * Note: Not all files have template data (e.g. Metadata files) – in such case an empty
+     * map is returned.
+     * @param generatedFile An absolute path to the generated file
+     * @return Typically one of the *Map types found in {@link org.openapitools.codegen.model}
+     */
+    public Map<String, Object> getCapturedTemplateData(Path generatedFile) {
+        return capturedTemplateData.getOrDefault(generatedFile.toString(), Map.of());
+    }
+
+    /**
+     * Gets the full status of this run.
+     *
+     * @return An immutable copy of the run status.
+     */
+    public Map<String, DryRunStatus> getFileStatusMap() {
+        return Collections.unmodifiableMap(fileStatusMap);
+    }
+
     private File writeToFileRaw(String filename, byte[] contents) throws IOException {
         // Use Paths.get here to normalize path (for Windows file separator, space escaping on Linux/Mac, etc)
         File output = Paths.get(filename).toFile();
-        if (this.options.isSkipOverwrite() && output.exists()) {
-            LOGGER.info("skip overwrite of file {}", filename);
-            return output;
-        }
 
         if (output.getParent() != null && !new File(output.getParent()).exists()) {
             File parent = Paths.get(output.getParent()).toFile();
