@@ -195,7 +195,7 @@ public class TypeScriptAxiosClientCodegenTest {
         files.forEach(File::deleteOnExit);
 
         Path file = Paths.get(output + "/api.ts");
-        String content = Files.readString(file);
+        String content = Files.readString(file).replace("\r\n", "\n");
 
         assertThat(content).contains(
                 "export const ChildCatPetTypeEnum = {\n" +

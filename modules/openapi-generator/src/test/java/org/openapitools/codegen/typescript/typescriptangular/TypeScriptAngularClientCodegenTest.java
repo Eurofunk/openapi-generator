@@ -485,7 +485,7 @@ public class TypeScriptAngularClientCodegenTest {
         generator.opts(clientOptInput).generate();
 
         // THEN
-        final String fileContents = Files.readString(Paths.get(output + "/api/default.service.ts"));
+        final String fileContents = Files.readString(Paths.get(output + "/api/default.service.ts")).replace("\r\n", "\n");
         assertThat(fileContents).containsSubsequence("'options',\n", "<any>options,\n", "QueryParamStyle.DeepObject,\n", "true,\n");
         assertThat(fileContents).containsSubsequence("'inputOptions',\n", "<any>inputOptions,\n", "QueryParamStyle.DeepObject,\n", "true,\n");
     }
