@@ -195,6 +195,9 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
      * @throws IOException If file cannot be written.
      */
     public File writeToFile(String filename, String contents) throws IOException {
+        // normalize line endings so that they do not depend on the line endings of the template file
+        contents = contents.replace("\r\n", "\n");
+        contents = contents.replace("\n", System.lineSeparator());
         return writeToFile(filename, contents.getBytes(StandardCharsets.UTF_8));
     }
 
