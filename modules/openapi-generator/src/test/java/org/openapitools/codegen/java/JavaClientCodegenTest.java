@@ -752,7 +752,7 @@ public class JavaClientCodegenTest {
                 ".*multipart\\.addFormData\\(param.getKey\\(\\),\\s*" +
                         "new\\s+FileInputStream\\(file\\),\\s*" +
                         "MediaType\\.APPLICATION_OCTET_STREAM_TYPE,\\s*" +
-                        "file.getName\\(\\)\\);.*")));
+                        "file.getName\\(\\)\\);.*\\s*")));
     }
 
     @Test
@@ -2040,9 +2040,10 @@ public class JavaClientCodegenTest {
         new DefaultGenerator().opts(new ClientOptInput().openAPI(openAPI).config(codegen)).generate();
 
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Cat.java")).content()
-                .contains("  @Override\n" + "  public Cat petType(@javax.annotation.Nonnull String petType) {");
+            .contains("  @Override" + System.lineSeparator() + "  public Cat petType(@javax.annotation.Nonnull String petType) {");
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Pet.java")).content()
-                .contains("  }\n" + "\n" + "  public Pet petType(@javax.annotation.Nonnull String petType) {\n");
+            .contains("  }" + System.lineSeparator() + System.lineSeparator() + "  public Pet petType(@javax.annotation.Nonnull String petType) {"
+                    + System.lineSeparator());
     }
 
     @Test
@@ -2058,9 +2059,10 @@ public class JavaClientCodegenTest {
         new DefaultGenerator().opts(new ClientOptInput().openAPI(openAPI).config(codegen)).generate();
 
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Cat.java")).content()
-                .contains("  @Override\n" + "  public Cat petType(@javax.annotation.Nonnull String petType) {");
+            .contains("  @Override" + System.lineSeparator() + "  public Cat petType(@javax.annotation.Nonnull String petType) {");
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Pet.java")).content()
-                .contains("  }\n" + "\n" + "  public Pet petType(@javax.annotation.Nonnull String petType) {\n");
+            .contains("  }" + System.lineSeparator() + System.lineSeparator() + "  public Pet petType(@javax.annotation.Nonnull String petType) {"
+                    + System.lineSeparator());
     }
 
     @Test
