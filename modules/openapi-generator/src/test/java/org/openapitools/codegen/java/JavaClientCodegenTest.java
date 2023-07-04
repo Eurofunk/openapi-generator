@@ -862,7 +862,7 @@ public class JavaClientCodegenTest {
                     ".*multipart\\.addFormData\\(param.getKey\\(\\),\\s*" +
                     "new\\s+FileInputStream\\(file\\),\\s*" +
                     "MediaType\\.APPLICATION_OCTET_STREAM_TYPE,\\s*" +
-                    "file.getName\\(\\)\\);.*")));
+                    "file.getName\\(\\)\\);.*\\s*")));
         } finally {
             files.forEach(File::deleteOnExit);
         }
