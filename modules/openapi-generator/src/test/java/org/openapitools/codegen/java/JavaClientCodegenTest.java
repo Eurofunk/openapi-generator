@@ -729,7 +729,7 @@ public class JavaClientCodegenTest {
                 ".*multipart\\.addFormData\\(param.getKey\\(\\),\\s*" +
                 "new\\s+FileInputStream\\(file\\),\\s*" +
                 "MediaType\\.APPLICATION_OCTET_STREAM_TYPE,\\s*" +
-                "file.getName\\(\\)\\);.*")));
+                "file.getName\\(\\)\\);.*\\s*")));
     }
 
     @Test public void testAuthorizationsMethodsSizeWhenFiltered() {
@@ -1954,9 +1954,10 @@ public class JavaClientCodegenTest {
         new DefaultGenerator().opts(new ClientOptInput().openAPI(openAPI).config(codegen)).generate();
 
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Cat.java")).content()
-            .contains("  @Override\n" + "  public Cat petType(String petType) {");
+            .contains("  @Override" + System.lineSeparator() + "  public Cat petType(String petType) {");
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Pet.java")).content()
-            .contains("  }\n" + "\n" + "  public Pet petType(String petType) {\n");
+            .contains("  }" + System.lineSeparator() + System.lineSeparator() + "  public Pet petType(String petType) {"
+                    + System.lineSeparator());
     }
 
     @Test public void testForJavaNativeClientOverrideSetter() {
@@ -1971,9 +1972,10 @@ public class JavaClientCodegenTest {
         new DefaultGenerator().opts(new ClientOptInput().openAPI(openAPI).config(codegen)).generate();
 
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Cat.java")).content()
-            .contains("  @Override\n" + "  public Cat petType(String petType) {");
+            .contains("  @Override" + System.lineSeparator() + "  public Cat petType(String petType) {");
         assertThat(output.resolve("src/main/java/org/openapitools/client/model/Pet.java")).content()
-            .contains("  }\n" + "\n" + "  public Pet petType(String petType) {\n");
+            .contains("  }" + System.lineSeparator() + System.lineSeparator() + "  public Pet petType(String petType) {"
+                    + System.lineSeparator());
     }
 
     @Test public void testDeprecatedProperty() {
@@ -2578,7 +2580,7 @@ public class JavaClientCodegenTest {
 
     @Test void testBuilderJavaClient() {
         Map<String, File> files = generateFromContract(
-            "src/test/resources/3_0/java/builder.yaml", 
+            "src/test/resources/3_0/java/builder.yaml",
             JavaClientCodegen.RESTTEMPLATE,
             Map.of(AbstractJavaCodegen.GENERATE_BUILDERS, Boolean.TRUE)
         );
