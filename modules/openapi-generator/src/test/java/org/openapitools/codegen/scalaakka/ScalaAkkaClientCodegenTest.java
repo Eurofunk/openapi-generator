@@ -372,9 +372,12 @@ public class ScalaAkkaClientCodegenTest {
                 .findFirst().get();
 
         byte[] fileContents = Files.readAllBytes(someObj.toPath());
+        String resourceContent = Resources.toString(Resources.getResource("codegen/scala/SomeObj.scala.txt"), StandardCharsets.UTF_8);
+        resourceContent = resourceContent.replace("\r\n", "\n");
+        resourceContent = resourceContent.replace("\n", System.lineSeparator());
         Assert.assertEquals(
                 new String(fileContents, StandardCharsets.UTF_8),
-                Resources.toString(Resources.getResource("codegen/scala/SomeObj.scala.txt"), StandardCharsets.UTF_8));
+                resourceContent);
     }
 
     @Test(description = "validate codegen java8 output")
@@ -415,9 +418,14 @@ public class ScalaAkkaClientCodegenTest {
                 .findFirst().get();
 
         byte[] fileContents = Files.readAllBytes(someObj.toPath());
+        String resourceContent = Resources.toString(Resources.getResource("codegen/scala/JavaTimeObj.scala.txt"), StandardCharsets.UTF_8);
+        resourceContent = resourceContent.replace("\r\n", "\n");
+        resourceContent = resourceContent.replace("\n", System.lineSeparator());
+
         Assert.assertEquals(
                 new String(fileContents, StandardCharsets.UTF_8),
-                Resources.toString(Resources.getResource("codegen/scala/JavaTimeObj.scala.txt"), StandardCharsets.UTF_8));
+                resourceContent
+                );
     }
 
 
