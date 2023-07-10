@@ -188,22 +188,7 @@ public class TemplateManager implements TemplatingExecutor, TemplateProcessor {
             return writeToFile(target.getPath(), templateContent);
         } else {
             // Do a straight copy of the file if not listed as supported by the template engine.
-            String fullTemplatePath = null;
-            try {
-                // look up the file using the same template resolution logic the adapters would use.
-                fullTemplatePath = getFullTemplateFile(template);
-            } catch (TemplateNotFoundException ex) {
-                // not found on classpath; fall through to direct file read below
-            }
-            if (fullTemplatePath != null) {
-                try (InputStream is = getInputStream(fullTemplatePath)) {
-                    return writeToFile(target.getAbsolutePath(), IOUtils.toByteArray(is));
-                }
-            } else {
-                try (InputStream is = new FileInputStream(Paths.get(template).toFile())) {
-                    return writeToFile(target.getAbsolutePath(), IOUtils.toByteArray(is));
-                }
-            }
+            return writeToFile(target.getPath(), getFullTemplateContents(template));
         }
     }
 
