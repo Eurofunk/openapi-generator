@@ -651,6 +651,10 @@ open class CommonGenerateCheckTask : DefaultTask() {
             resolvedInputSpec = value
         }
 
+        if (additionalSpecFiles.isPresent) {
+            configurator.setAdditionalSpecFiles(additionalSpecFiles.get())
+        }
+
         remoteInputSpec.ifNotEmpty { value ->
             resolvedInputSpec = value
         }

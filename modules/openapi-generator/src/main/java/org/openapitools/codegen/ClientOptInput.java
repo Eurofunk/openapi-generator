@@ -30,11 +30,17 @@ public class ClientOptInput {
     private CodegenConfig config;
     private GeneratorSettings generatorSettings;
     private OpenAPI openAPI;
+    private List<OpenAPI> additionalSpecs;
     private List<AuthorizationValue> auths;
     private List<TemplateDefinition> userDefinedTemplates;
 
     public ClientOptInput openAPI(OpenAPI openAPI) {
         this.setOpenAPI(openAPI);
+        return this;
+    }
+
+    public ClientOptInput additionalSpecs(List<OpenAPI> additionalSpecs) {
+        this.setAdditionalSpecs(additionalSpecs);
         return this;
     }
 
@@ -131,5 +137,20 @@ public class ClientOptInput {
         if (this.config != null) {
             this.config.setOpenAPI(this.openAPI);
         }
+    }
+
+    public List<OpenAPI> getAdditionalSpecs() {
+        return additionalSpecs;
+    }
+
+    /**
+     * Sets additional OpenAPI documents
+     *
+     * @deprecated use {@link #additionalSpecs} instead
+     * @param additionalSpecs the specifications
+     */
+    @Deprecated
+    public void setAdditionalSpecs(List<OpenAPI> additionalSpecs) {
+        this.additionalSpecs = additionalSpecs;
     }
 }
