@@ -24,6 +24,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -94,6 +95,11 @@ open class CommonGenerateCheckTask : DefaultTask() {
     @get:InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     val inputSpec = project.objects.property<String>()
+
+    @Optional
+    @get:InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    val additionalSpecFiles = project.objects.listProperty<String>()
 
     /**
      * Local root folder with spec files
@@ -621,6 +627,10 @@ open class CommonGenerateCheckTask : DefaultTask() {
 
         inputSpec.ifNotEmpty { value ->
             configurator.setInputSpec(value)
+        }
+
+        if (additionalSpecFiles.isPresent) {
+            configurator.setAdditionalSpecFiles(additionalSpecFiles.get())
         }
 
         remoteInputSpec.ifNotEmpty { value ->
