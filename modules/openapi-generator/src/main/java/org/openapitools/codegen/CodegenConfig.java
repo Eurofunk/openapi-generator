@@ -33,6 +33,7 @@ import org.openapitools.codegen.model.OperationsMap;
 import org.openapitools.codegen.model.WebhooksMap;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,6 +122,12 @@ public interface CodegenConfig {
     String getInputSpec();
 
     void setInputSpec(String inputSpec);
+
+    default List<String> getAdditionalSpecFiles() {
+        return Collections.emptyList();
+    }
+
+    default void setAdditionalSpecFiles(List<String> additionalSpecFiles) {}
 
     String getOutputDir();
 

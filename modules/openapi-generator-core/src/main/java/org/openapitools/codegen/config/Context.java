@@ -16,6 +16,8 @@
 
 package org.openapitools.codegen.config;
 
+import java.util.List;
+
 /**
  * The Context used for generation.
  *
@@ -23,6 +25,7 @@ package org.openapitools.codegen.config;
  */
 public class Context<TSpecDocument> {
     private TSpecDocument specDocument;
+    private List<TSpecDocument> additionalSpecDocuments;
     private GeneratorSettings generatorSettings;
     private WorkflowSettings workflowSettings;
 
@@ -33,8 +36,9 @@ public class Context<TSpecDocument> {
      * @param generatorSettings the generator settings
      * @param workflowSettings  the workflow settings
      */
-    public Context(TSpecDocument specDocument, GeneratorSettings generatorSettings, WorkflowSettings workflowSettings) {
+    public Context(TSpecDocument specDocument, List<TSpecDocument> additionalSpecDocuments, GeneratorSettings generatorSettings, WorkflowSettings workflowSettings) {
         this.specDocument = specDocument;
+        this.additionalSpecDocuments = additionalSpecDocuments;
         this.generatorSettings = generatorSettings;
         this.workflowSettings = workflowSettings;
     }
@@ -55,6 +59,15 @@ public class Context<TSpecDocument> {
      */
     public TSpecDocument getSpecDocument() {
         return specDocument;
+    }
+
+    /**
+     * Gets the additional spec documents.
+     *
+     * @return the spec document
+     */
+    public List<TSpecDocument> getAdditionalSpecDocuments() {
+        return additionalSpecDocuments;
     }
 
     /**

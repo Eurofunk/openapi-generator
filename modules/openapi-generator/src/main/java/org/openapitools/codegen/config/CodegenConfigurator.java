@@ -62,6 +62,7 @@ public class CodegenConfigurator {
 
     private String generatorName;
     private String inputSpec;
+    private List<String> additionalSpecFiles = new ArrayList<>();
     private String templatingEngineName;
     private Map<String, String> globalProperties = new HashMap<>();
     private Map<String, String> instantiationTypes = new HashMap<>();
@@ -494,6 +495,12 @@ public class CodegenConfigurator {
         return this;
     }
 
+    public CodegenConfigurator setAdditionalSpecFiles(List<String> additionalSpecFiles) {
+        this.additionalSpecFiles = additionalSpecFiles;
+        workflowSettingsBuilder.withAdditionalSpecFiles(additionalSpecFiles);
+        return this;
+    }
+
     public CodegenConfigurator setInstantiationTypes(Map<String, String> instantiationTypes) {
         this.instantiationTypes = instantiationTypes;
         generatorSettingsBuilder.withInstantiationTypes(instantiationTypes);
@@ -639,7 +646,7 @@ public class CodegenConfigurator {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public Context<?> toContext() {
+    public Context<OpenAPI> toContext() {
         Validate.notEmpty(generatorName, "generator name must be specified");
         Validate.notEmpty(inputSpec, "input spec must be specified");
 
@@ -693,6 +700,13 @@ public class CodegenConfigurator {
         // https://github.com/swagger-api/swagger-parser/pull/1374
         //ModelUtils.getOpenApiVersion(specification, inputSpec, authorizationValues);
 
+        final List<OpenAPI> additionalSpecifications = new ArrayList<>();
+        for (final String additionalSpecFile : additionalSpecFiles) {
+            final SwaggerParseResult additionalResult = new OpenAPIParser().readLocation(additionalSpecFile, authorizationValues, options);
+            validationMessages.addAll(additionalResult.getMessages());
+            additionalSpecifications.add(additionalResult.getOpenAPI());
+        }
+
         // NOTE: We will only expose errors+warnings if there are already errors in the spec.
         if (validationMessages.size() > 0) {
             Set<String> warnings = new HashSet<>();
@@ -709,6 +723,22 @@ public class CodegenConfigurator {
                     System.err.println("[error] There is an error with OpenAPI specification parsed from the input spec file: " + inputSpec);
                     System.err.println("[error] Please make sure the spec file has correct format and all required fields are populated with valid value.");
                 }
+            }
+
+            int i = 0;
+            for (final OpenAPI additionalSpecification : additionalSpecifications) {
+                // Wrap the getUnusedSchemas() in try catch block so it catches the NPE
+                // when the input spec file is not correct
+                try {
+                    List<String> unusedModels = ModelUtils.getUnusedSchemas(additionalSpecification);
+                    if (unusedModels != null) {
+                        unusedModels.forEach(name -> warnings.add("Unused model: " + name));
+                    }
+                } catch (Exception e){
+                    System.err.println("[error] There is an error with OpenAPI specification parsed from the input spec file: " + additionalSpecFiles.get(i));
+                    System.err.println("[error] Please make sure the spec file has correct format and all required fields are populated with valid value.");
+                }
+                i++;
             }
 
             if (workflowSettings.isValidateSpec()) {
@@ -737,11 +767,11 @@ public class CodegenConfigurator {
             }
         }
 
-        return new Context<>(specification, generatorSettings, workflowSettings);
+        return new Context<>(specification, additionalSpecifications, generatorSettings, workflowSettings);
     }
 
     public ClientOptInput toClientOptInput() {
-        Context<?> context = toContext();
+        Context<OpenAPI> context = toContext();
         WorkflowSettings workflowSettings = context.getWorkflowSettings();
         GeneratorSettings generatorSettings = context.getGeneratorSettings();
 
@@ -755,6 +785,7 @@ public class CodegenConfigurator {
 
         // TODO: Work toward CodegenConfig having a "WorkflowSettings" property, or better a "Workflow" object which itself has a "WorkflowSettings" property.
         config.setInputSpec(workflowSettings.getInputSpec());
+        config.setAdditionalSpecFiles(workflowSettings.getAdditionalSpecFiles());
         config.setOutputDir(workflowSettings.getOutputDir());
         config.setSkipOverwrite(workflowSettings.isSkipOverwrite());
         config.setIgnoreFilePathOverride(workflowSettings.getIgnoreFileOverride());
@@ -807,6 +838,8 @@ public class CodegenConfigurator {
                 .config(config)
                 .generatorSettings(generatorSettings)
                 .userDefinedTemplates(userDefinedTemplates);
+
+        input.additionalSpecs(context.getAdditionalSpecDocuments());
 
         return input.openAPI((OpenAPI)context.getSpecDocument());
     }
