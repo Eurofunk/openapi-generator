@@ -17,6 +17,7 @@
 package org.openapitools.generator.gradle.plugin.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.VerificationException
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.logging.text.StyledTextOutput
@@ -67,7 +68,15 @@ open class ChangesTask : CommonGenerateCheckTask() {
                     val gen = selectedCodegen.opts(clientOptInput)
                     gen.generate()
                     if (gen.hasChanges()) {
-                        throw GradleException("There were changes to the generated code.")
+                        val changedFiles = gen.getChangedFiles()
+                        val output = buildString {
+                            appendLine("There were changes to the generated code.")
+                            appendLine()
+                            appendLine("Changed files:")
+                            append(changedFiles.joinToString(separator = System.lineSeparator()))
+                        }
+
+                        throw VerificationException(output)
                     } else {
                         out.println("There were no changes to the generated code.")
                     }

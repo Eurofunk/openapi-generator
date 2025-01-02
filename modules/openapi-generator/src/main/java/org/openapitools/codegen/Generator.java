@@ -33,4 +33,6 @@ public interface Generator {
     void displayDryRunResults(Map<String, DryRunStatus> fileStatusMap);
 
     boolean hasChanges();
+
+    List<String> getChangedFiles();
 }
