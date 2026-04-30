@@ -510,6 +510,11 @@ openApiGenerate {
     generatorClasspath.from(files("libs/my-normalizer.jar", "libs/my-custom-generator.jar"))
 }
 ----
+
+|generateMetadata
+|Boolean
+|true
+|Defines whether metadata should be generated.
 |===
 
 [NOTE]

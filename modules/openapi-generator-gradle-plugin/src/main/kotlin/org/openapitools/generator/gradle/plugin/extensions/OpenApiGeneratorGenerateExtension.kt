@@ -593,6 +593,11 @@ open class OpenApiGeneratorGenerateExtension(private val project: Project) {
      */
     val generatorClasspath: ConfigurableFileCollection = project.objects.fileCollection()
 
+    /**
+     * Defines whether metadata should be generated.
+     */
+    val generateMetadata = project.objects.property<Boolean>()
+
     init {
         applyDefaults()
     }
@@ -621,6 +626,7 @@ open class OpenApiGeneratorGenerateExtension(private val project: Project) {
         generateAliasAsModel.convention(false)
         cleanupOutput.convention(false)
         dryRun.convention(false)
+        generateMetadata.convention(true)
         mergedFileInfoName.convention("merged spec")
         mergedFileInfoDescription.convention("merged spec")
         mergedFileInfoVersion.convention("1.0.0")

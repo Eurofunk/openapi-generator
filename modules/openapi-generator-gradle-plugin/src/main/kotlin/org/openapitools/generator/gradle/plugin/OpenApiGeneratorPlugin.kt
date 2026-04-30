@@ -190,6 +190,7 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
                     generatorClasspath.from(generatorExtraClasspath)
                     generatorClasspath.from(generate.generatorClasspath)
                     codegenName.set(generate.codegenName)
+                    generateMetadata.set(generate.generateMetadata)
                 }
             }
         }
