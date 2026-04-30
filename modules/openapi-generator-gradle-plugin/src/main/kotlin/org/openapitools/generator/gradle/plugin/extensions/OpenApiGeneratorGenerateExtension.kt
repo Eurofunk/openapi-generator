@@ -47,6 +47,12 @@ open class OpenApiGeneratorGenerateExtension(private val project: Project) {
     val generatorName = project.objects.property<String>()
 
     /**
+     * Defines the codegen name or class.
+     * If not specified org.openapitools.codegen.DefaultGenerator will be used.
+     */
+    val codegenName = project.objects.property<String>()
+
+    /**
      * The output target directory into which code will be generated.
      */
     val outputDir: DirectoryProperty = project.objects.directoryProperty()
@@ -420,6 +426,7 @@ open class OpenApiGeneratorGenerateExtension(private val project: Project) {
         modelNamePrefix.convention("")
         modelNameSuffix.convention("")
         apiNameSuffix.convention("")
+        codegenName.convention("default")
         generateModelTests.convention(true)
         generateModelDocumentation.convention(true)
         generateApiTests.convention(true)

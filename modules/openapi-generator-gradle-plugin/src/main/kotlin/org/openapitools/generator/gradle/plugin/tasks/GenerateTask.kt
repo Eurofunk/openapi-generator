@@ -29,16 +29,20 @@ import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
+import org.gradle.kotlin.dsl.property
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutor
 import org.openapitools.codegen.CodegenConstants
 import org.openapitools.codegen.DefaultGenerator
+import org.openapitools.codegen.Generator
 import org.openapitools.codegen.config.CodegenConfigurator
 import org.openapitools.codegen.config.GlobalSettings
 import org.openapitools.codegen.config.MergedSpecBuilder
 import org.openapitools.generator.gradle.plugin.utils.isRemoteUri
 import java.io.File
+import java.util.ServiceConfigurationError
+import java.util.ServiceLoader
 import javax.inject.Inject
 
 // =========================================================================================
@@ -81,6 +85,7 @@ interface OpenApiWorkParameters : WorkParameters {
     val generateAliasAsModel: Property<Boolean>
     val engine: Property<String>
     val dryRun: Property<Boolean>
+    val codegenName: Property<String>
 
     val globalProperties: MapProperty<String, String>
     val instantiationTypes: MapProperty<String, String>
@@ -233,10 +238,15 @@ abstract class OpenApiWorkAction : WorkAction<OpenApiWorkParameters> {
 
             // Run Generator
             val isDryRun = params.dryRun.getOrElse(false)
-            DefaultGenerator(isDryRun).opts(clientOptInput).generate()
-
-            params.outputDir.orNull?.let { dir ->
-                logger.lifecycle("Successfully generated code to ${dir.asFile.absolutePath}")
+            val codegenName = params.codegenName.getOrElse("default")
+            val selectedCodegen = selectCodegen(codegenName, isDryRun)
+            if (selectedCodegen != null) {
+                selectedCodegen.opts(clientOptInput).generate()
+                params.outputDir.orNull?.let { dir ->
+                    logger.lifecycle("Successfully generated code to ${dir.asFile.absolutePath}")
+                }
+            } else {
+                throw GradleException("The supplied codegen name or class does implement org.openapitools.codegen.Generator.")
             }
 
         } catch (e: Exception) {
@@ -253,6 +263,47 @@ abstract class OpenApiWorkAction : WorkAction<OpenApiWorkParameters> {
             // Clean up static state in this isolated ClassLoader
             GlobalSettings.reset()
         }
+    }
+
+    private fun selectCodegen(codegenName: String, dryRunSetting: Boolean): Generator? {
+        var selectedCodegen: Generator = DefaultGenerator(dryRunSetting)
+        try {
+            val availableCodegens = ServiceLoader.load(Generator::class.java)
+            availableCodegens.forEach { item: Generator ->
+                if (item.name.equals(codegenName)) {
+                    selectedCodegen = item
+                }
+            }
+        } catch (e: ServiceConfigurationError) {
+            throw GradleException("Could not load codegen {$codegenName} via SPI.", e)
+        }
+
+        // wanted a different codegen but did not find it as service
+        if (codegenName != "default" && selectedCodegen.javaClass == DefaultGenerator::class.java) {
+            try {
+                val codegenInst = Class.forName(codegenName)
+                    .getDeclaredConstructor()
+                    .newInstance(dryRunSetting)
+                if (codegenInst is Generator) {
+                    selectedCodegen = codegenInst
+                } else {
+                    return null
+                }
+            } catch (e: ClassNotFoundException) {
+                throw GradleException(
+                    "Selected codegen class {$codegenName} could not be found.",
+                    e
+                )
+            } catch (e: NoSuchMethodException) {
+                throw GradleException(
+                    "Selected codegen class {$codegenName} does not have a suitable constructor. "
+                            + "Have you selected the correct class?",
+                    e
+                )
+            }
+        }
+
+        return selectedCodegen
     }
 }
 
@@ -825,6 +876,13 @@ abstract class GenerateTask : DefaultTask() {
     @get:Input
     abstract val dryRun: Property<Boolean>
 
+    /**
+     * Defines the codegen name or class. If not specified org.openapitools.codegen.DefaultGenerator will be used.
+     */
+    @get:Optional
+    @get:Input
+    abstract val codegenName: Property<String>
+
     init {
         inputSpecRootDirectorySkipMerge.convention(false)
         mergedFileName.convention("merged")
@@ -903,6 +961,7 @@ abstract class GenerateTask : DefaultTask() {
                 parameters.generateAliasAsModel.set(generateAliasAsModel)
                 parameters.engine.set(engine)
                 parameters.dryRun.set(dryRun)
+                parameters.codegenName.set(codegenName)
 
                 parameters.globalProperties.set(globalProperties)
                 parameters.instantiationTypes.set(instantiationTypes)
