@@ -189,6 +189,7 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
                     maxWorkerHeapSize.set(generate.maxWorkerHeapSize)
                     generatorClasspath.from(generatorExtraClasspath)
                     generatorClasspath.from(generate.generatorClasspath)
+                    codegenName.set(generate.codegenName)
                 }
             }
         }
@@ -198,5 +199,4 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
         const val pluginGroup = "OpenAPI Tools"
     }
 }
-
 
