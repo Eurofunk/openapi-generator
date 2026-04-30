@@ -86,6 +86,7 @@ interface OpenApiWorkParameters : WorkParameters {
     val engine: Property<String>
     val dryRun: Property<Boolean>
     val codegenName: Property<String>
+    val generateMetadata: Property<Boolean>
 
     val globalProperties: MapProperty<String, String>
     val instantiationTypes: MapProperty<String, String>
@@ -241,6 +242,8 @@ abstract class OpenApiWorkAction : WorkAction<OpenApiWorkParameters> {
             val codegenName = params.codegenName.getOrElse("default")
             val selectedCodegen = selectCodegen(codegenName, isDryRun)
             if (selectedCodegen != null) {
+                val generateMetadata = params.generateMetadata.getOrElse(true);
+                selectedCodegen.setGenerateMetadata(generateMetadata)
                 selectedCodegen.opts(clientOptInput).generate()
                 params.outputDir.orNull?.let { dir ->
                     logger.lifecycle("Successfully generated code to ${dir.asFile.absolutePath}")
@@ -883,6 +886,13 @@ abstract class GenerateTask : DefaultTask() {
     @get:Input
     abstract val codegenName: Property<String>
 
+    /**
+     * Defines whether metadata should be generated.
+     */
+    @get:Optional
+    @get:Input
+    abstract val generateMetadata: Property<Boolean>
+
     init {
         inputSpecRootDirectorySkipMerge.convention(false)
         mergedFileName.convention("merged")
@@ -962,6 +972,7 @@ abstract class GenerateTask : DefaultTask() {
                 parameters.engine.set(engine)
                 parameters.dryRun.set(dryRun)
                 parameters.codegenName.set(codegenName)
+                parameters.generateMetadata.set(generateMetadata)
 
                 parameters.globalProperties.set(globalProperties)
                 parameters.instantiationTypes.set(instantiationTypes)

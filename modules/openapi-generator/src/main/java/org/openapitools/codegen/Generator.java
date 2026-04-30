@@ -26,4 +26,8 @@ public interface Generator {
     List<File> generate();
 
     String getName();
+
+    void setGenerateMetadata(Boolean generateMetadata);
+
+    void displayDryRunResults();
 }
