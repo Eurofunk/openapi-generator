@@ -133,6 +133,12 @@ public interface CodegenConfig {
 
     void setInputSpec(String inputSpec);
 
+    default List<String> getAdditionalSpecFiles() {
+        return Collections.emptyList();
+    }
+
+    default void setAdditionalSpecFiles(List<String> additionalSpecFiles) {}
+
     String getOutputDir();
 
     void setOutputDir(String dir);
