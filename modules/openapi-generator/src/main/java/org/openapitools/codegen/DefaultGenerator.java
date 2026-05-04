@@ -68,7 +68,7 @@ import static org.openapitools.codegen.utils.OnceLogger.once;
 public class DefaultGenerator implements Generator {
     private static final String METADATA_DIR = ".openapi-generator";
     protected final Logger LOGGER = LoggerFactory.getLogger(DefaultGenerator.class);
-    private final boolean dryRun;
+    protected final boolean dryRun;
     protected CodegenConfig config;
     protected ClientOptInput opts;
     protected OpenAPI openAPI;
@@ -76,7 +76,7 @@ public class DefaultGenerator implements Generator {
     private Boolean generateApis = null;
     private Boolean generateModels = null;
     private Boolean generateRecursiveDependentModels = null;
-    private Boolean generateSupportingFiles = null;
+    protected Boolean generateSupportingFiles = null;
     private Boolean generateWebhooks = null;
     private Boolean generateApiTests = null;
     private Boolean generateApiDocumentation = null;
@@ -87,7 +87,7 @@ public class DefaultGenerator implements Generator {
     private String basePathWithoutHost;
     private String contextPath;
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
-    private boolean hasChanges;
+    protected boolean hasChanges;
     /**
      * Retrieves an instance to the configured template processor, available after user-defined options are
      * applied via
@@ -318,7 +318,7 @@ public class DefaultGenerator implements Generator {
         }
     }
 
-    private void configureOpenAPIInfo() {
+    void configureOpenAPIInfo() {
         Info info = this.openAPI.getInfo();
         if (info == null) {
             return;
@@ -1084,7 +1084,7 @@ public class DefaultGenerator implements Generator {
         }
     }
 
-    private void generateSupportingFiles(List<File> files, Map<String, Object> bundle) {
+    void generateSupportingFiles(List<File> files, Map<String, Object> bundle) {
         if (!generateSupportingFiles) {
             // TODO: process these anyway and report via dryRun?
             LOGGER.info("Skipping generation of supporting files.");
@@ -1391,7 +1391,7 @@ public class DefaultGenerator implements Generator {
         LOGGER.error(sb.toString());
     }
 
-    private void processUserDefinedTemplates() {
+    void processUserDefinedTemplates() {
         // TODO: initial behavior is "merge" user defined with built-in templates. consider offering user a "replace" option.
         if (userDefinedTemplates != null && !userDefinedTemplates.isEmpty()) {
             Map<String, SupportingFile> supportingFilesMap = config.supportingFiles().stream()
@@ -2005,7 +2005,7 @@ public class DefaultGenerator implements Generator {
      *
      * @param files The list tracking generated files
      */
-    private void generateFilesMetadata(List<File> files) {
+    void generateFilesMetadata(List<File> files) {
         if (generateMetadata) {
             try {
                 StringBuilder sb = new StringBuilder();

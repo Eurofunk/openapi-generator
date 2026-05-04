@@ -108,6 +108,7 @@ interface OpenApiWorkParameters : WorkParameters {
 
     val languageSpecificPrimitives: ListProperty<String>
     val openapiGeneratorIgnoreList: ListProperty<String>
+    val additionalSpecFiles: ListProperty<String>
 
     val supportingFilesConstrainedTo: ListProperty<String>
     val modelFilesConstrainedTo: ListProperty<String>
@@ -163,6 +164,9 @@ abstract class OpenApiWorkAction : WorkAction<OpenApiWorkParameters> {
 
             // Apply Configurator Settings
             params.resolvedInputSpec.orNull?.let { configurator.setInputSpec(it) }
+            if (params.additionalSpecFiles.isPresent) {
+                configurator.setAdditionalSpecFiles(params.additionalSpecFiles.get())
+            }
             params.outputDir.orNull?.let { configurator.setOutputDir(it.asFile.absolutePath) }
             params.verbose.orNull?.let { configurator.setVerbose(it) }
             params.validateSpec.orNull?.let { configurator.setValidateSpec(it) }
@@ -432,6 +436,13 @@ abstract class GenerateTask : DefaultTask() {
     @get:Input
     @get:Optional
     abstract val remoteInputSpec: Property<String>
+
+    /**
+     * Additional OpenAPI specification files to be merged/used during generation.
+     */
+    @get:Optional
+    @get:Input
+    abstract val additionalSpecFiles: ListProperty<String>
 
     /**
      * The template directory holding a custom template.
@@ -998,6 +1009,7 @@ abstract class GenerateTask : DefaultTask() {
 
                 parameters.languageSpecificPrimitives.set(languageSpecificPrimitives)
                 parameters.openapiGeneratorIgnoreList.set(openapiGeneratorIgnoreList)
+                parameters.additionalSpecFiles.set(additionalSpecFiles)
                 parameters.supportingFilesConstrainedTo.set(supportingFilesConstrainedTo)
                 parameters.modelFilesConstrainedTo.set(modelFilesConstrainedTo)
                 parameters.apiFilesConstrainedTo.set(apiFilesConstrainedTo)

@@ -104,6 +104,7 @@ interface ChangesWorkParameters : WorkParameters {
 
     val languageSpecificPrimitives: ListProperty<String>
     val openapiGeneratorIgnoreList: ListProperty<String>
+    val additionalSpecFiles: ListProperty<String>
 
     val supportingFilesConstrainedTo: ListProperty<String>
     val modelFilesConstrainedTo: ListProperty<String>
@@ -214,6 +215,10 @@ abstract class ChangesWorkAction : WorkAction<ChangesWorkParameters> {
 
             params.languageSpecificPrimitives.orNull?.forEach { configurator.addLanguageSpecificPrimitive(it) }
             params.openapiGeneratorIgnoreList.orNull?.forEach { configurator.addOpenapiGeneratorIgnoreList(it) }
+
+            if (params.additionalSpecFiles.isPresent) {
+                configurator.setAdditionalSpecFiles(params.additionalSpecFiles.get())
+            }
 
             val clientOptInput = configurator.toClientOptInput()
             val codegenConfig = clientOptInput.config
@@ -441,6 +446,14 @@ abstract class ChangesTask : DefaultTask() {
     @get:Optional
     @get:Input
     abstract val openapiGeneratorIgnoreList: ListProperty<String>
+
+    /**
+     * Additional OpenAPI specification files to be merged/used during generation.
+     */
+    @get:Optional
+    @get:Input
+    abstract val additionalSpecFiles: ListProperty<String>
+
 
     @get:Optional
     @get:Input
@@ -690,6 +703,7 @@ abstract class ChangesTask : DefaultTask() {
 
                 parameters.languageSpecificPrimitives.set(languageSpecificPrimitives)
                 parameters.openapiGeneratorIgnoreList.set(openapiGeneratorIgnoreList)
+                parameters.additionalSpecFiles.set(additionalSpecFiles)
                 parameters.supportingFilesConstrainedTo.set(supportingFilesConstrainedTo)
                 parameters.modelFilesConstrainedTo.set(modelFilesConstrainedTo)
                 parameters.apiFilesConstrainedTo.set(apiFilesConstrainedTo)
