@@ -88,6 +88,7 @@ public class DefaultGenerator implements Generator {
     private String contextPath;
     private final Map<String, String> generatorPropertyDefaults = new HashMap<>();
     protected boolean hasChanges;
+    protected List<String> changedFiles = new ArrayList<>();
     /**
      * Retrieves an instance to the configured template processor, available after user-defined options are
      * applied via
@@ -118,6 +119,10 @@ public class DefaultGenerator implements Generator {
     @Override
     public boolean hasChanges() {
         return this.hasChanges;
+    }
+
+    public List<String> getChangedFiles() {
+        return this.changedFiles;
     }
 
     @SuppressWarnings("deprecation")
@@ -1330,10 +1335,17 @@ public class DefaultGenerator implements Generator {
             fileStatusMap = new HashMap<>();
         }
 
-        this.hasChanges = fileStatusMap.entrySet().stream().anyMatch(entry -> {
-            DryRunStatus.State state = entry.getValue().getState();
+        List<Map.Entry<String, DryRunStatus>> changes = fileStatusMap.entrySet().stream().filter(entry -> {
+            DryRunStatus entryValue = entry.getValue();
+            DryRunStatus.State state = entryValue.getState();
             return state.equals(DryRunStatus.State.Updated) || state.equals(DryRunStatus.State.Write);
-        });
+        }).collect(Collectors.toList());
+
+        this.hasChanges = !changes.isEmpty();
+        this.changedFiles = changes.stream().map(entry -> {
+            DryRunStatus entryValue = entry.getValue();
+            return entryValue.getPath().toString();
+        }).collect(Collectors.toList());
 
         if (dryRun) {
             displayDryRunResults(fileStatusMap);

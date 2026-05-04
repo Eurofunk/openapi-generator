@@ -19,6 +19,7 @@ package org.openapitools.generator.gradle.plugin.tasks
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.VerificationException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.file.RegularFileProperty
@@ -240,7 +241,15 @@ abstract class ChangesWorkAction : WorkAction<ChangesWorkParameters> {
                 selectedCodegen.opts(clientOptInput).generate()
 
                 if (selectedCodegen.hasChanges()) {
-                    throw GradleException("There were changes to the generated code.")
+                    val changedFiles = selectedCodegen.getChangedFiles()
+                    val output = buildString {
+                        appendLine("There were changes to the generated code.")
+                        appendLine()
+                        appendLine("Changed files:")
+                        append(changedFiles.joinToString(separator = System.lineSeparator()))
+                    }
+
+                    throw VerificationException(output)
                 } else {
                     logger.lifecycle("There were no changes to the generated code.")
                 }
