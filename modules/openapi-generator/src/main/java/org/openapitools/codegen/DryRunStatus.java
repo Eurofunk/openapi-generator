@@ -93,6 +93,12 @@ class DryRunStatus {
                 case WriteIfNewer:
                     this.reason = "File will be written only if it is new or if contents differ from an existing file.";
                     break;
+                case Updated:
+                    this.reason = "File exists and content has changed; file will be updated.";
+                    break;
+                case Uptodate:
+                    this.reason = "File exists and content is unchanged; file will not be written.";
+                    break;
                 case Ignored:
                     this.reason = "Ignored via rules defined in codegen ignore file.";
                     break;
@@ -112,9 +118,11 @@ class DryRunStatus {
      * Represents the possible states of a file write operation as determined by the Generator
      */
     @Getter
-    enum State {
+    public enum State {
         Write("w", "Write"),
         WriteIfNewer("n", "Write if New/Updated"),
+        Updated("u", "Updated as content has changed"),
+        Uptodate("t", "File is up-to-date"),
         Ignored("i", "Ignored"),
         SkippedOverwrite("s", "Skipped Overwrite"),
         Skipped("k", "Skipped by user option(s)"),

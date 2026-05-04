@@ -282,44 +282,48 @@ abstract class OpenApiWorkAction : WorkAction<OpenApiWorkParameters> {
     }
 
     private fun selectCodegen(codegenName: String, dryRunSetting: Boolean): Generator? {
-        var selectedCodegen: Generator = DefaultGenerator(dryRunSetting)
-        try {
-            val availableCodegens = ServiceLoader.load(Generator::class.java)
-            availableCodegens.forEach { item: Generator ->
-                if (item.name.equals(codegenName)) {
-                    selectedCodegen = item
+        var genName = codegenName
+
+        if (genName != "default" && !genName.contains(".")) {
+            try {
+                val availableCodegens = ServiceLoader.load(Generator::class.java)
+                availableCodegens.forEach { item: Generator ->
+                    if (item.name.equals(genName)) {
+                        // since ServiceLoader does not let us use constructors with parameters
+                        // we just collect the right name and then instantiate the class ourselves
+                        genName = item::class.java.name
+                    }
                 }
+            } catch (e: ServiceConfigurationError) {
+                throw GradleException("Could not load codegen {$genName} via SPI.", e)
             }
-        } catch (e: ServiceConfigurationError) {
-            throw GradleException("Could not load codegen {$codegenName} via SPI.", e)
         }
 
-        // wanted a different codegen but did not find it as service
-        if (codegenName != "default" && selectedCodegen.javaClass == DefaultGenerator::class.java) {
+        if (genName.contains(".")) {
             try {
-                val codegenInst = Class.forName(codegenName)
-                    .getDeclaredConstructor()
+                val codegenInst = Class.forName(genName)
+                    .getDeclaredConstructor(Boolean::class.javaObjectType)
                     .newInstance(dryRunSetting)
-                if (codegenInst is Generator) {
-                    selectedCodegen = codegenInst
+                return if (codegenInst is Generator) {
+                    codegenInst
                 } else {
-                    return null
+                    null
                 }
             } catch (e: ClassNotFoundException) {
                 throw GradleException(
-                    "Selected codegen class {$codegenName} could not be found.",
+                    "Selected codegen class {$genName} could not be found.",
                     e
                 )
             } catch (e: NoSuchMethodException) {
                 throw GradleException(
-                    "Selected codegen class {$codegenName} does not have a suitable constructor. "
+                    "Selected codegen class {$genName} does not have a suitable constructor. "
                             + "Have you selected the correct class?",
                     e
                 )
             }
         }
 
-        return selectedCodegen
+        return DefaultGenerator(dryRunSetting)
     }
 }
 

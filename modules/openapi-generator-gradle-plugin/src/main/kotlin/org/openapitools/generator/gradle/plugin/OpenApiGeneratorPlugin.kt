@@ -18,10 +18,12 @@ package org.openapitools.generator.gradle.plugin
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.openapitools.generator.gradle.plugin.extensions.OpenApiGeneratorChangesExtension
 import org.openapitools.generator.gradle.plugin.extensions.OpenApiGeneratorGenerateExtension
 import org.openapitools.generator.gradle.plugin.extensions.OpenApiGeneratorGeneratorsExtension
 import org.openapitools.generator.gradle.plugin.extensions.OpenApiGeneratorMetaExtension
 import org.openapitools.generator.gradle.plugin.extensions.OpenApiGeneratorValidateExtension
+import org.openapitools.generator.gradle.plugin.tasks.ChangesTask
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 import org.openapitools.generator.gradle.plugin.tasks.GeneratorsTask
 import org.openapitools.generator.gradle.plugin.tasks.MetaTask
@@ -73,6 +75,14 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
                 description = "Additional classpath entries (e.g. custom NORMALIZER_CLASS jars) " +
                         "forwarded to the openApiGenerate worker in both process and classloader isolation."
             }
+
+            val changes = extensions.create(
+                "openApiChanges",
+                OpenApiGeneratorChangesExtension::class.java,
+                project
+            )
+
+            changes.outputDir.convention(layout.buildDirectory.dir("generate-resources/main"))
 
             tasks.apply {
                 register("openApiGenerators", GeneratorsTask::class.java).configure {
@@ -192,6 +202,75 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
                     codegenName.set(generate.codegenName)
                     generateMetadata.set(generate.generateMetadata)
                 }
+
+                register("openApiChanges", ChangesTask::class.java).configure {
+                    group = pluginGroup
+                    description =
+                        "Checks if code generation from an Open API 2.0 or 3.x specification would change existing generated files."
+
+                    verbose.set(changes.verbose)
+                    validateSpec.set(changes.validateSpec)
+                    generatorName.set(changes.generatorName)
+                    outputDir.set(changes.outputDir)
+                    inputSpec.set(changes.inputSpec)
+                    inputSpecRootDirectory.set(changes.inputSpecRootDirectory)
+                    inputSpecRootDirectorySkipMerge.set(changes.inputSpecRootDirectorySkipMerge)
+                    remoteInputSpec.set(changes.remoteInputSpec)
+                    templateDir.set(changes.templateDir)
+                    templateResourcePath.set(changes.templateResourcePath)
+                    auth.set(changes.auth)
+                    globalProperties.set(changes.globalProperties)
+                    configFile.set(changes.configFile)
+                    packageName.set(changes.packageName)
+                    apiPackage.set(changes.apiPackage)
+                    modelPackage.set(changes.modelPackage)
+                    modelNamePrefix.set(changes.modelNamePrefix)
+                    modelNameSuffix.set(changes.modelNameSuffix)
+                    apiNameSuffix.set(changes.apiNameSuffix)
+                    instantiationTypes.set(changes.instantiationTypes)
+                    typeMappings.set(changes.typeMappings)
+                    additionalProperties.set(changes.additionalProperties)
+                    serverVariables.set(changes.serverVariables)
+                    languageSpecificPrimitives.set(changes.languageSpecificPrimitives)
+                    openapiGeneratorIgnoreList.set(changes.openapiGeneratorIgnoreList)
+                    importMappings.set(changes.importMappings)
+                    schemaMappings.set(changes.schemaMappings)
+                    inlineSchemaNameMappings.set(changes.inlineSchemaNameMappings)
+                    inlineSchemaOptions.set(changes.inlineSchemaOptions)
+                    nameMappings.set(changes.nameMappings)
+                    modelNameMappings.set(changes.modelNameMappings)
+                    parameterNameMappings.set(changes.parameterNameMappings)
+                    openapiNormalizer.set(changes.openapiNormalizer)
+                    invokerPackage.set(changes.invokerPackage)
+                    groupId.set(changes.groupId)
+                    id.set(changes.id)
+                    version.set(changes.version)
+                    library.set(changes.library)
+                    gitHost.set(changes.gitHost)
+                    gitUserId.set(changes.gitUserId)
+                    gitRepoId.set(changes.gitRepoId)
+                    releaseNote.set(changes.releaseNote)
+                    httpUserAgent.set(changes.httpUserAgent)
+                    reservedWordsMappings.set(changes.reservedWordsMappings)
+                    ignoreFileOverride.set(changes.ignoreFileOverride)
+                    removeOperationIdPrefix.set(changes.removeOperationIdPrefix)
+                    skipOperationExample.set(changes.skipOperationExample)
+                    apiFilesConstrainedTo.set(changes.apiFilesConstrainedTo)
+                    modelFilesConstrainedTo.set(changes.modelFilesConstrainedTo)
+                    supportingFilesConstrainedTo.set(changes.supportingFilesConstrainedTo)
+                    generateModelTests.set(changes.generateModelTests)
+                    generateModelDocumentation.set(changes.generateModelDocumentation)
+                    generateApiTests.set(changes.generateApiTests)
+                    generateApiDocumentation.set(changes.generateApiDocumentation)
+                    configOptions.set(changes.configOptions)
+                    logToStderr.set(changes.logToStderr)
+                    enablePostProcessFile.set(changes.enablePostProcessFile)
+                    skipValidateSpec.set(changes.skipValidateSpec)
+                    generateAliasAsModel.set(changes.generateAliasAsModel)
+                    engine.set(changes.engine)
+                    codegenName.set(changes.codegenName)
+                    generateMetadata.set(changes.generateMetadata)
+                }
             }
         }
     }
@@ -200,4 +279,3 @@ class OpenApiGeneratorPlugin : Plugin<Project> {
         const val pluginGroup = "OpenAPI Tools"
     }
 }
-
