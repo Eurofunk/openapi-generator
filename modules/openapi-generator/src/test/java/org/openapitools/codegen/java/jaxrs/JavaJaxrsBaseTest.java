@@ -144,7 +144,7 @@ public abstract class JavaJaxrsBaseTest {
 
         DefaultGenerator generator = new DefaultGenerator(true);
         generator.opts(new ClientOptInput().openAPI(openAPI).config(codegen));
-        var dryRunTMan = ((DryRunTemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
+        var dryRunTMan = ((TemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
         generator.generate();
 
         final var tag0ApiTemplateData = dryRunTMan.getCapturedTemplateData(output.toPath().resolve("src/gen/java/org/openapitools/api/Tag0Api.java"));
@@ -205,7 +205,7 @@ public abstract class JavaJaxrsBaseTest {
 
         DefaultGenerator generator = new DefaultGenerator(true);
         generator.opts(new ClientOptInput().openAPI(openAPI).config(codegen));
-        var dryRunTMan = ((DryRunTemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
+        var dryRunTMan = ((TemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
         generator.generate();
 
         final var defaultApiTemplateData = dryRunTMan.getCapturedTemplateData(output.toPath().resolve("src/gen/java/org/openapitools/api/DefaultApi.java"));

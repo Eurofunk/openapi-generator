@@ -19,6 +19,7 @@ package org.openapitools.codegen;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public interface Generator {
     Generator opts(ClientOptInput opts);
@@ -29,5 +30,7 @@ public interface Generator {
 
     void setGenerateMetadata(Boolean generateMetadata);
 
-    void displayDryRunResults();
+    void displayDryRunResults(Map<String, DryRunStatus> fileStatusMap);
+
+    boolean hasChanges();
 }
