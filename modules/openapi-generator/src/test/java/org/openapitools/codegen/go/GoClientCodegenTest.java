@@ -755,7 +755,8 @@ public class GoClientCodegenTest {
                 "validate:\"regexp=^[^\\\\x00-\\\\x1f\\\\x7f-\\\\x9f]+$\"",
                 "validate:\"regexp=^[^\\\\x{feff}]*$\"");
         String content = Files.readString(model);
-        Assert.assertFalse(content.codePoints().anyMatch(c -> Character.isISOControl(c) && c != '\n' && c != '\t'),
+        Assert.assertFalse(content.codePoints().anyMatch(c -> Character.isISOControl(c)
+                        && System.lineSeparator().indexOf(c) < 0 && c != '\t'),
                 "the generated model must not contain control characters other than newlines and tabs");
         Assert.assertFalse(content.contains("\uFEFF"), "the generated model must not contain a byte order mark");
     }

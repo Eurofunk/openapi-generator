@@ -108,7 +108,7 @@ public class KotlinMicroprofileClientCodegenTest {
         List<File> files = generate(codegen);
 
         assertThat(find(files, "Pet.kt")).content()
-                .contains("@param:JsonProperty(\"name\")\n    @get:JsonProperty(\"name\")\n    val name:")
+                .contains("@param:JsonProperty(\"name\")\n    @get:JsonProperty(\"name\")\n    val name:".replace("\n", System.lineSeparator()))
                 .doesNotContain("JsonSetter");
     }
 

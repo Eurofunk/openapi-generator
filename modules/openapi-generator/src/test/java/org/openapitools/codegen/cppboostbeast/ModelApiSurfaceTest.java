@@ -607,59 +607,59 @@ public class ModelApiSurfaceTest {
 
         // 1. uploadWithEncoding: image/png and application/pdf as 4th emplace_back arg.
         String uploadWithEnc = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadWithEncoding(");
-        Assert.assertTrue(uploadWithEnc.contains("\"image\",\n        toFormParameterValue(*image),\n        true,\n        \"image/png\""),
+        Assert.assertTrue(uploadWithEnc.contains("\"image\",\n        toFormParameterValue(*image),\n        true,\n        \"image/png\"".replace("\n", System.lineSeparator())),
                 "uploadWithEncoding image must pass 'image/png' as 4th FormParameter arg. "
                 + "Method body: " + uploadWithEnc);
-        Assert.assertTrue(uploadWithEnc.contains("\"document\",\n        toFormParameterValue(*document),\n        true,\n        \"application/pdf\""),
+        Assert.assertTrue(uploadWithEnc.contains("\"document\",\n        toFormParameterValue(*document),\n        true,\n        \"application/pdf\"".replace("\n", System.lineSeparator())),
                 "uploadWithEncoding document must pass 'application/pdf' as 4th FormParameter arg. "
                 + "Method body: " + uploadWithEnc);
         // description (string, no encoding) — OAS default text/plain.
-        Assert.assertTrue(uploadWithEnc.contains("\"description\",\n        toFormParameterValue(*description),\n        false,\n        \"text/plain\""),
+        Assert.assertTrue(uploadWithEnc.contains("\"description\",\n        toFormParameterValue(*description),\n        false,\n        \"text/plain\"".replace("\n", System.lineSeparator())),
                 "uploadWithEncoding description (string, no encoding) must pass 'text/plain' as 4th FormParameter arg. "
                 + "Method body: " + uploadWithEnc);
 
         // 2. uploadTextWithEncoding: text/plain as 4th arg on textContent.
         String uploadText = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadTextWithEncoding(");
-        Assert.assertTrue(uploadText.contains("\"textContent\",\n        toFormParameterValue(*textContent),\n        false,\n        \"text/plain\""),
+        Assert.assertTrue(uploadText.contains("\"textContent\",\n        toFormParameterValue(*textContent),\n        false,\n        \"text/plain\"".replace("\n", System.lineSeparator())),
                 "uploadTextWithEncoding textContent must pass 'text/plain' as 4th FormParameter arg. "
                 + "Method body: " + uploadText);
         // notes is binary without encoding — OAS default octet-stream.
-        Assert.assertTrue(uploadText.contains("\"notes\",\n        toFormParameterValue(*notes),\n        true,\n        \"application/octet-stream\""),
+        Assert.assertTrue(uploadText.contains("\"notes\",\n        toFormParameterValue(*notes),\n        true,\n        \"application/octet-stream\"".replace("\n", System.lineSeparator())),
                 "uploadTextWithEncoding notes (binary, no encoding) must pass 'application/octet-stream' as OAS default. "
                 + "Method body: " + uploadText);
 
         // 3. uploadBinaryDefault: rawData (binary, no encoding) gets OAS default.
         String uploadBinary = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadBinaryDefault(");
-        Assert.assertTrue(uploadBinary.contains("\"rawData\",\n        toFormParameterValue(*rawData),\n        true,\n        \"application/octet-stream\""),
+        Assert.assertTrue(uploadBinary.contains("\"rawData\",\n        toFormParameterValue(*rawData),\n        true,\n        \"application/octet-stream\"".replace("\n", System.lineSeparator())),
                 "uploadBinaryDefault rawData (binary, no encoding) must pass 'application/octet-stream' as OAS default. "
                 + "Method body: " + uploadBinary);
 
         // 4. uploadMixedEncoding: avatar and report get encoding; signature gets default.
         String uploadMixed = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadMixedEncoding(");
-        Assert.assertTrue(uploadMixed.contains("\"avatar\",\n        toFormParameterValue(*avatar),\n        true,\n        \"image/png\""),
+        Assert.assertTrue(uploadMixed.contains("\"avatar\",\n        toFormParameterValue(*avatar),\n        true,\n        \"image/png\"".replace("\n", System.lineSeparator())),
                 "uploadMixedEncoding avatar must pass 'image/png' as 4th arg. "
                 + "Method body: " + uploadMixed);
-        Assert.assertTrue(uploadMixed.contains("\"report\",\n        toFormParameterValue(*report),\n        true,\n        \"application/pdf\""),
+        Assert.assertTrue(uploadMixed.contains("\"report\",\n        toFormParameterValue(*report),\n        true,\n        \"application/pdf\"".replace("\n", System.lineSeparator())),
                 "uploadMixedEncoding report must pass 'application/pdf' as 4th arg. "
                 + "Method body: " + uploadMixed);
         // signature without encoding — File with OAS default octet-stream.
-        Assert.assertTrue(uploadMixed.contains("\"signature\",\n        toFormParameterValue(*signature),\n        true,\n        \"application/octet-stream\""),
+        Assert.assertTrue(uploadMixed.contains("\"signature\",\n        toFormParameterValue(*signature),\n        true,\n        \"application/octet-stream\"".replace("\n", System.lineSeparator())),
                 "uploadMixedEncoding signature (binary, no encoding) must pass 'application/octet-stream' as OAS default. "
                 + "Method body: " + uploadMixed);
 
         // 5. uploadJsonObject: payload (object, no encoding) — OAS default application/json.
         String uploadJson = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadJsonObject(");
-        Assert.assertTrue(uploadJson.contains("\"payload\",\n        toFormParameterValue(*payload),\n        false,\n        \"application/json\""),
+        Assert.assertTrue(uploadJson.contains("\"payload\",\n        toFormParameterValue(*payload),\n        false,\n        \"application/json\"".replace("\n", System.lineSeparator())),
                 "uploadJsonObject payload (object, no encoding) must pass 'application/json' as 4th FormParameter arg. "
                 + "Method body: " + uploadJson);
 
         // 6. uploadArrayPart: tags (primitive array, no encoding) — OAS default text/plain.
         String uploadArray = CppBoostBeastTestSupport.extractMethod(apiContent, "uploadArrayPart(");
-        Assert.assertTrue(uploadArray.contains("\"tags\",\n        toFormParameterValue(*tags),\n        false,\n        \"text/plain\""),
+        Assert.assertTrue(uploadArray.contains("\"tags\",\n        toFormParameterValue(*tags),\n        false,\n        \"text/plain\"".replace("\n", System.lineSeparator())),
                 "uploadArrayPart tags (primitive array, no encoding) must pass 'text/plain' as 4th FormParameter arg. "
                 + "Method body: " + uploadArray);
         // file (binary, no encoding) gets OAS default octet-stream.
-        Assert.assertTrue(uploadArray.contains("\"file\",\n        toFormParameterValue(*file),\n        true,\n        \"application/octet-stream\""),
+        Assert.assertTrue(uploadArray.contains("\"file\",\n        toFormParameterValue(*file),\n        true,\n        \"application/octet-stream\"".replace("\n", System.lineSeparator())),
                 "uploadArrayPart file (binary, no encoding) must pass 'application/octet-stream' as OAS default. "
                 + "Method body: " + uploadArray);
     }

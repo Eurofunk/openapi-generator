@@ -257,15 +257,15 @@ public class PythonFastAPIServerCodegenTest {
         final String content = Files.readString(api);
 
         // commas terminate the parameter line
-        Assert.assertTrue(content.contains("itemId: int = Path(..., description=\"\"),\n"),
+        Assert.assertTrue(content.contains("itemId: int = Path(..., description=\"\")," + System.lineSeparator()),
                 "parameter line should end with a comma: " + api);
-        Assert.assertTrue(content.contains("session_id: Optional[int] = Cookie(None, description=\"\"),\n"),
+        Assert.assertTrue(content.contains("session_id: Optional[int] = Cookie(None, description=\"\")," + System.lineSeparator()),
                 "parameter line should end with a comma: " + api);
-        Assert.assertTrue(content.contains("dark_mode: Optional[bool] = Cookie(None, description=\"\"),\n"),
+        Assert.assertTrue(content.contains("dark_mode: Optional[bool] = Cookie(None, description=\"\")," + System.lineSeparator()),
                 "parameter line should end with a comma: " + api);
 
         // the comma must never be wrapped onto its own line
-        Assert.assertFalse(content.contains("\n,\n"),
+        Assert.assertFalse(content.contains(System.lineSeparator() + "," + System.lineSeparator()),
                 "comma wrapped onto its own line in: " + api);
     }
 

@@ -218,7 +218,7 @@ public class Oas31ExactRuntimeTest {
                 "generated API source must contain the empty-response operation");
         String emptyMethod = apiSource.substring(emptyMethodStart, emptyMethodEnd);
         Assert.assertTrue(
-                emptyMethod.contains("responseContentType,\n            true,"),
+                emptyMethod.contains("responseContentType,\n            true,".replace("\n", System.lineSeparator())),
                 "a null-default response model must tolerate an empty response body");
 
         Path source = Path.of(

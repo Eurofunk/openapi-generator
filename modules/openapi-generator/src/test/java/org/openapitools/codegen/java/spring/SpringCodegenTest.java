@@ -8224,11 +8224,11 @@ public class SpringCodegenTest {
                 .assertMethod("getRequiredDt").assertMethodAnnotations().containsWithName("NotNull").containsWithName("Valid");
         if (optionalAcceptNullable) {
             fooAssert.fileContains(
-                    "Foo dt(java.time.@Nullable Instant dt) {\n    this.dt = Optional.ofNullable(dt);",
+                    "Foo dt(java.time.@Nullable Instant dt) {\n    this.dt = Optional.ofNullable(dt);".replace("\n", System.lineSeparator()),
                     "Foo.Builder dt(java.time.@Nullable Instant dt) {");
         } else {
             fooAssert.fileContains(
-                    "Foo dt(java.time.Instant dt) {\n    this.dt = Optional.of(dt);",
+                    "Foo dt(java.time.Instant dt) {\n    this.dt = Optional.of(dt);".replace("\n", System.lineSeparator()),
                     "Foo.Builder dt(java.time.Instant dt) {");
         }
         JavaFileAssert.assertThat(files.get("FooApi.java"))
@@ -11617,7 +11617,7 @@ public class SpringCodegenTest {
                 "this.nullableTags = JsonNullable.of(nullableTags);",
                 "public Gadget.Builder tags(Set<String> tags) {",
                 "public Gadget.Builder kind(KindEnum kind) {",
-                "@Deprecated\n    public Gadget.Builder old(String old) {");
+                "@Deprecated\n    public Gadget.Builder old(String old) {".replace("\n", System.lineSeparator()));
         assertThat(sourceOf(files.get("Gadget.java"))).doesNotContain("private Gadget instance");
     }
 
@@ -11722,19 +11722,24 @@ public class SpringCodegenTest {
 
         // discriminator first, last, with and without a mapping
         assertSource(files, "Dog.java")
-                .contains("  public String getPetType() {\n    return petType;\n  }")
+                .contains("  public String getPetType() {\n    return petType;\n  }".replace("\n", System.lineSeparator()))
                 .containsOnlyOnce("getPetType()");
         assertSource(files, "Alpha.java")
-                .contains("public record Alpha(", ") implements Kind {", "  public String getKind() {\n    return kind;\n  }");
+                .contains("public record Alpha(", ") implements Kind {",
+                        "  public String getKind() {\n    return kind;\n  }".replace("\n", System.lineSeparator()));
         assertSource(files, "Kind.java").contains("public String getKind();");
         // the accessor carries exactly the class getter's @JsonProperty with the JSON name; @JsonIgnore on it breaks Jackson 3
         for (String name : List.of("Dog.java", "Alpha.java", "Beta.java", "Cat.java", "Circle.java", "Apple.java")) {
             String source = sourceOf(files.get(name));
-            assertThat(source).doesNotContain("@JsonIgnore\n  public", "@Override\n  public")
-                    .containsPattern("\\n  @JsonProperty\\(\"\\w+\"\\)\\n  public \\w+ get\\w+\\(\\) \\{")
-                    .doesNotContainPattern("\\n  @\\w+[^\\n]*\\n  @\\w+[^\\n]*\\n  public \\w+ get\\w+\\(\\) \\{");
+            assertThat(source).doesNotContain("@JsonIgnore\n  public".replace("\n", System.lineSeparator()),
+                            "@Override\n  public".replace("\n", System.lineSeparator()))
+                    .containsPattern("\\n  @JsonProperty\\(\"\\w+\"\\)\\n  public \\w+ get\\w+\\(\\) \\{"
+                            .replace("\\n", System.lineSeparator()))
+                    .doesNotContainPattern("\\n  @\\w+[^\\n]*\\n  @\\w+[^\\n]*\\n  public \\w+ get\\w+\\(\\) \\{"
+                            .replace("\\n", System.lineSeparator()));
         }
-        assertSource(files, "Dog.java").contains("  @JsonProperty(\"petType\")\n  public String getPetType() {");
+        assertSource(files, "Dog.java").contains("  @JsonProperty(\"petType\")\n  public String getPetType() {"
+                .replace("\n", System.lineSeparator()));
     }
 
     @Test
@@ -11743,7 +11748,8 @@ public class SpringCodegenTest {
 
         // Jackson 2 derives "type" from getTYPE(): without the annotation the discriminator is written twice
         assertSource(files, "UpperA.java")
-                .contains("String TYPE", "  @JsonProperty(\"TYPE\")\n  public String getTYPE() {\n    return TYPE;\n  }");
+                .contains("String TYPE", "  @JsonProperty(\"TYPE\")\n  public String getTYPE() {\n    return TYPE;\n  }"
+                        .replace("\n", System.lineSeparator()));
         assertSource(files, "Upper.java").contains("public String getTYPE();");
     }
 
@@ -11771,7 +11777,8 @@ public class SpringCodegenTest {
 
         // without openApiNullable the property is a plain String and the member is a record again
         assertSource(generateOneOfRecords(Map.of("openApiNullable", "false")), "NullishA.java")
-                .contains("public record NullishA(", "  public String getKn() {\n    return kn;\n  }");
+                .contains("public record NullishA(", "  public String getKn() {\n    return kn;\n  }"
+                        .replace("\n", System.lineSeparator()));
     }
 
     @Test
@@ -11825,7 +11832,7 @@ public class SpringCodegenTest {
 
         assertSource(files, "Circle.java")
                 .contains("public record Circle(", "ShapeType shapeType", ") implements Shape {",
-                        "  public ShapeType getShapeType() {\n    return shapeType;\n  }");
+                        "  public ShapeType getShapeType() {\n    return shapeType;\n  }".replace("\n", System.lineSeparator()));
         assertSource(files, "Shape.java").contains("public ShapeType getShapeType();");
         // the mapping keys differ from the model names, the subtypes keep them
         assertSource(files, "Shape.java").contains("@JsonSubTypes.Type(value = Circle.class, name = \"circ\")");
@@ -11837,9 +11844,11 @@ public class SpringCodegenTest {
 
         // Banana declares no fruitType, the interface adds it as the last component
         assertSource(files, "Banana.java")
-                .contains("public record Banana(", "Integer length,", "FruitType fruitType\n) implements Fruit {",
-                        "  public FruitType getFruitType() {\n    return fruitType;\n  }");
-        assertSource(files, "Apple.java").contains("Integer seeds,", "FruitType fruitType\n) implements Fruit {");
+                .contains("public record Banana(", "Integer length,",
+                        "FruitType fruitType\n) implements Fruit {".replace("\n", System.lineSeparator()),
+                        "  public FruitType getFruitType() {\n    return fruitType;\n  }".replace("\n", System.lineSeparator()));
+        assertSource(files, "Apple.java").contains("Integer seeds,",
+                "FruitType fruitType\n) implements Fruit {".replace("\n", System.lineSeparator()));
     }
 
     @Test
@@ -12015,8 +12024,10 @@ public class SpringCodegenTest {
             for (String name : List.of("Cat.java", "Kitten.java")) {
                 assertSource(files, name)
                         .contains("public record " + name.replace(".java", "") + "(", ") implements Inner {",
-                                "  @JsonProperty(\"quadType\")\n  public String getQuadType() {\n    return quadType;\n  }",
-                                "  @JsonProperty(\"shapeType\")\n  public String getShapeType() {\n    return shapeType;\n  }")
+                                "  @JsonProperty(\"quadType\")\n  public String getQuadType() {\n    return quadType;\n  }"
+                                        .replace("\n", System.lineSeparator()),
+                                "  @JsonProperty(\"shapeType\")\n  public String getShapeType() {\n    return shapeType;\n  }"
+                                        .replace("\n", System.lineSeparator()))
                         .containsOnlyOnce("getQuadType()")
                         .containsOnlyOnce("getShapeType()");
             }
@@ -12045,7 +12056,8 @@ public class SpringCodegenTest {
         for (String name : List.of("MCat.java", "MKitten.java")) {
             assertSource(files, name)
                     .contains("public record " + name.replace(".java", "") + "(", ") implements MInner {",
-                            "  @JsonProperty(\"shapeType\")\n  public String getShapeType() {\n    return shapeType;\n  }")
+                            "  @JsonProperty(\"shapeType\")\n  public String getShapeType() {\n    return shapeType;\n  }"
+                                    .replace("\n", System.lineSeparator()))
                     .containsOnlyOnce("getShapeType()");
         }
     }
@@ -12097,7 +12109,8 @@ public class SpringCodegenTest {
         for (String name : List.of("SCat.java", "SKitten.java")) {
             assertSource(files, name)
                     .contains("public record " + name.replace(".java", "") + "(", ") implements SInner {",
-                            "  @JsonProperty(\"kind\")\n  public String getKind() {\n    return kind;\n  }")
+                            "  @JsonProperty(\"kind\")\n  public String getKind() {\n    return kind;\n  }"
+                                    .replace("\n", System.lineSeparator()))
                     .containsOnlyOnce("getKind()");
         }
     }
@@ -12401,7 +12414,8 @@ public class SpringCodegenTest {
                             "String name,",
                             "Integer count,",
                             "String secret,",
-                            "    @JsonAnySetter\n    @JsonAnyGetter\n    Map<String, String> additionalProperties\n) {",
+                            "    @JsonAnySetter\n    @JsonAnyGetter\n    Map<String, String> additionalProperties\n) {"
+                                    .replace("\n", System.lineSeparator()),
                             "if (additionalProperties == null) {",
                             "additionalProperties = new LinkedHashMap<>();",
                             "public String getAdditionalProperty(String key) {",

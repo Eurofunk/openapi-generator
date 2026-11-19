@@ -473,7 +473,7 @@ public class RubyNextgenClientCodegenTest {
         org.openapitools.codegen.TestUtils.assertFileNotContains(
                 namespaceOnly, "class Only::Children", "class Only::Siblings");
         assertEquals(java.nio.file.Files.readString(namespaceOnly),
-                "# frozen_string_literal: true\n"
+                ("# frozen_string_literal: true\n"
                         + "\n"
                         + "module Petstore\n"
                         + "  module Api\n"
@@ -491,7 +491,7 @@ public class RubyNextgenClientCodegenTest {
                         + "      end\n"
                         + "    end\n"
                         + "  end\n"
-                        + "end\n");
+                        + "end\n").replace("\n", System.lineSeparator()));
         org.openapitools.codegen.TestUtils.assertFileContains(
                 target.resolve("spec/api/only_spec.rb"),
                 "exposes children through the namespace client",

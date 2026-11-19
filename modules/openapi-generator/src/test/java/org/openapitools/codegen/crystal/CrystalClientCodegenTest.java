@@ -778,7 +778,7 @@ public class CrystalClientCodegenTest {
         String src = FileUtils.readFileToString(model, StandardCharsets.UTF_8);
 
         // required + non-nullable stays mandatory and non-nullable
-        assertTrue(src.contains("property id : String\n"),
+        assertTrue(src.contains("property id : String" + System.lineSeparator()),
             "required non-nullable property must stay `String`, got:\n" + src);
 
         // required + nullable (anyOf composition) -> mandatory but nullable

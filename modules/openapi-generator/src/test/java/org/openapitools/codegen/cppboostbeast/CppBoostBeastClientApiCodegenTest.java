@@ -108,12 +108,12 @@ public class CppBoostBeastClientApiCodegenTest {
         String emptyMapMethod = extractMethod(generatedApiSource, "RegressionApi::getEmptyMap(");
         assertTrue(emptyMapMethod.contains(
                 "ResponseBodyDeserializer<std::map<std::string, std::string>>::deserialize("));
-        assertTrue(emptyMapMethod.contains("responseBody,\n            responseContentType,\n            true);"));
+        assertTrue(emptyMapMethod.contains("responseBody,\n            responseContentType,\n            true);".replace("\n", System.lineSeparator())));
 
         String emptyFreeFormMethod = extractMethod(generatedApiSource, "RegressionApi::getEmptyFreeForm(");
         assertTrue(emptyFreeFormMethod.contains(
                 "ResponseBodyDeserializer<boost::json::value>::deserialize("));
-        assertTrue(emptyFreeFormMethod.contains("responseBody,\n            responseContentType,\n            true);"));
+        assertTrue(emptyFreeFormMethod.contains("responseBody,\n            responseContentType,\n            true);".replace("\n", System.lineSeparator())));
 
         String rawTextMethod = extractMethod(generatedApiSource, "RegressionApi::postRawText(");
         assertTrue(rawTextMethod.contains("headers[\"Content-Type\"] = requestContentType;"));
@@ -173,7 +173,7 @@ public class CppBoostBeastClientApiCodegenTest {
                 "headers[\"Content-Type\"] = requestContentType + \"; boundary=\" + multipartBoundary;"));
         assertTrue(multipartMethod.contains("serializeMultipartFormData(formParameters, multipartBoundary)"));
         assertTrue(multipartMethod.contains("\"file\","));
-        assertTrue(multipartMethod.contains("true,\n        \"application/octet-stream\""),
+        assertTrue(multipartMethod.contains("true,\n        \"application/octet-stream\"".replace("\n", System.lineSeparator())),
                 "Binary file must pass true and application/octet-stream as 4th arg");
         assertTrue(generatedApiHeader.contains("const std::string& fileFilename = \"file\""),
                 "Binary multipart inputs must expose a caller-controlled filename");
@@ -192,7 +192,7 @@ public class CppBoostBeastClientApiCodegenTest {
                 + " boost::optional<std::string>(file), fileFilename);"),
                 "Value-typed multipart overloads must forward to omission-aware storage");
         assertTrue(multipartMethod.contains(
-                "\"application/octet-stream\",\n        fileFilename)"),
+                "\"application/octet-stream\",\n        fileFilename)".replace("\n", System.lineSeparator())),
                 "Binary multipart inputs must pass the caller-controlled filename");
         assertTrue(multipartMethod.contains("if (hasFormParameterValue(description))"),
                 "Optional multipart inputs must be omitted when their storage is disengaged");
@@ -211,9 +211,9 @@ public class CppBoostBeastClientApiCodegenTest {
         assertTrue(urlEncodedMethod.contains("serializeUrlEncodedFormData(formParameters)"));
         assertTrue(urlEncodedMethod.contains("toFormParameterValue(*enabled)"));
         assertTrue(generatedApiSource.contains(
-                "template<typename T>\n"
+                ("template<typename T>\n"
                         + "typename std::enable_if<HasFormToJsonValue<T>::value, std::string>::type\n"
-                        + "toFormParameterValue(const T& value) {"),
+                        + "toFormParameterValue(const T& value) {").replace("\n", System.lineSeparator())),
                 "The model form serializer overload must be a function template");
         assertTrue(generatedApiSource.contains(
                 "inline std::string toFormParameterValue(bool value)"));
@@ -228,39 +228,39 @@ public class CppBoostBeastClientApiCodegenTest {
         assertTrue(queryEncodingMethod.contains("\"form\","));
         // form/explode=true (multi) array cell
         assertTrue(queryEncodingMethod.contains(
-                "\"values\",\n            values,"));
+                "\"values\",\n            values,".replace("\n", System.lineSeparator())));
         assertTrue(queryEncodingMethod.contains(
-                "values,\n            \"form\",\n            true,"));
+                "values,\n            \"form\",\n            true,".replace("\n", System.lineSeparator())));
         // form/explode=false (csv) cells
         assertTrue(queryEncodingMethod.contains(
-                "csvValues,\n            \"form\",\n            false,"));
+                "csvValues,\n            \"form\",\n            false,".replace("\n", System.lineSeparator())));
         assertTrue(queryEncodingMethod.contains(
-                "explicitFormDefaultValues,\n            \"form\",\n            true,"));
+                "explicitFormDefaultValues,\n            \"form\",\n            true,".replace("\n", System.lineSeparator())));
         assertTrue(queryEncodingMethod.contains(
-                "noStyleCsvValues,\n            \"form\",\n            false,"));
+                "noStyleCsvValues,\n            \"form\",\n            false,".replace("\n", System.lineSeparator())));
         // form/explode=true (multi) cell without explicit style keys
         assertTrue(queryEncodingMethod.contains(
-                "noStyleExplodedValues,\n            \"form\",\n            true,"));
+                "noStyleExplodedValues,\n            \"form\",\n            true,".replace("\n", System.lineSeparator())));
         // spaceDelimited / pipeDelimited cells (explode=false)
         assertTrue(queryEncodingMethod.contains(
-                "spaceValues,\n            \"spaceDelimited\",\n            false,"));
+                "spaceValues,\n            \"spaceDelimited\",\n            false,".replace("\n", System.lineSeparator())));
         assertTrue(queryEncodingMethod.contains(
-                "pipeValues,\n            \"pipeDelimited\",\n            false,"));
+                "pipeValues,\n            \"pipeDelimited\",\n            false,".replace("\n", System.lineSeparator())));
         // optional gate + deref
         assertTrue(queryEncodingMethod.contains("if (optionalValue)"));
         assertTrue(queryEncodingMethod.contains(
                 "*optionalValue,"));
         // exploded-map cell (form/explode=true map)
         assertTrue(queryEncodingMethod.contains(
-                "metadata,\n            \"form\",\n            true,"));
+                "metadata,\n            \"form\",\n            true,".replace("\n", System.lineSeparator())));
         // csv-map cell (form/explode=false map)
         assertTrue(queryEncodingMethod.contains(
-                "compactMetadata,\n            \"form\",\n            false,"));
+                "compactMetadata,\n            \"form\",\n            false,".replace("\n", System.lineSeparator())));
         // deepObject cell
         assertTrue(queryEncodingMethod.contains(
-                "\"scoped-metadata\",\n            scopedMetadata,"));
+                "\"scoped-metadata\",\n            scopedMetadata,".replace("\n", System.lineSeparator())));
         assertTrue(queryEncodingMethod.contains(
-                "scopedMetadata,\n            \"deepObject\",\n            true,"));
+                "scopedMetadata,\n            \"deepObject\",\n            true,".replace("\n", System.lineSeparator())));
         // header cells (simple style, explode=false default)
         assertTrue(queryEncodingMethod.contains(
                 "serializeHeaderParameterValue(wireHeader, false)"));
@@ -483,7 +483,7 @@ public class CppBoostBeastClientApiCodegenTest {
                 "#    define OPENAI_GENERATED_API __declspec(dllexport)"));
         assertTrue(exportHeader.contains(
                 "#    define OPENAI_GENERATED_API __declspec(dllimport)"));
-        assertTrue(exportHeader.contains("#  define OPENAI_GENERATED_API\n"));
+        assertTrue(exportHeader.contains("#  define OPENAI_GENERATED_API" + System.lineSeparator()));
 
         String modelHeader = Files.readString(
                 generatedClientDirectory.resolve("model/CreateRequest.h"));

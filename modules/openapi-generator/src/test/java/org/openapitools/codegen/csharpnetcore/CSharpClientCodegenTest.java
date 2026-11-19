@@ -229,13 +229,13 @@ public class CSharpClientCodegenTest {
                 .containsPattern(
                         "if \\(requiredNotnullableEnumStringRawValue != null\\)\\s+\\{");
         assertThat(requiredClassContents).contains(
-                "if (requiredNullableEnumStringValue == null)\n" +
+                "if (requiredNullableEnumStringValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (requiredNotnullableEnumStringValue == null)\n" +
+                "if (requiredNotnullableEnumStringValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (!requiredNullableEnumString.IsSet)\n" +
+                "if (!requiredNullableEnumString.IsSet)" + System.lineSeparator() +
                         "                throw new JsonException(\"Property is required for class RequiredClass: required_nullable_enum_string.\");",
-                "if (!requiredNotnullableEnumString.IsSet)\n" +
+                "if (!requiredNotnullableEnumString.IsSet)" + System.lineSeparator() +
                         "                throw new JsonException(\"Property is required for class RequiredClass: required_notnullable_enum_string.\");"
         );
     }
@@ -708,17 +708,17 @@ public class CSharpClientCodegenTest {
         // Unknown non-null enum values are rejected consistently for nullable and non-nullable
         // string, numeric, and byte-backed inner enums.
         assertThat(modelWithEnumProperties).contains(
-                "if (inlineIntEnumValue == null)\n" +
+                "if (inlineIntEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (nullableInlineIntEnumValue == null)\n" +
+                "if (nullableInlineIntEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (inlineStringEnumValue == null)\n" +
+                "if (inlineStringEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (nullableInlineStringEnumValue == null)\n" +
+                "if (nullableInlineStringEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (inlineByteEnumValue == null)\n" +
+                "if (inlineByteEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
-                "if (nullableInlineByteEnumValue == null)\n" +
+                "if (nullableInlineByteEnumValue == null)" + System.lineSeparator() +
                         "                                    throw new JsonException();",
                 "inlineIntEnum = new Option<ModelWithEnumProperties.InlineIntEnumEnum?>(inlineIntEnumValue);",
                 "ModelWithEnumProperties.NullableInlineIntEnumEnum? nullableInlineIntEnumValue = " +
@@ -753,9 +753,9 @@ public class CSharpClientCodegenTest {
 
         // Required numeric checks distinguish a missing property from a present null.
         assertThat(modelWithEnumProperties).contains(
-                "if (!requiredInlineIntEnum.IsSet)\n" +
+                "if (!requiredInlineIntEnum.IsSet)" + System.lineSeparator() +
                         "                throw new JsonException(\"Property is required for class ModelWithEnumProperties: requiredInlineIntEnum.\");",
-                "if (requiredInlineIntEnum.IsSet && requiredInlineIntEnum.Value == null)\n" +
+                "if (requiredInlineIntEnum.IsSet && requiredInlineIntEnum.Value == null)" + System.lineSeparator() +
                         "                throw new JsonException(\"Property is not nullable for class ModelWithEnumProperties: requiredInlineIntEnum.\");"
         );
 

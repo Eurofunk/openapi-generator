@@ -277,7 +277,7 @@ public abstract class JavaJaxrsBaseTest {
 
         DefaultGenerator generator = new DefaultGenerator(true);
         generator.opts(new ClientOptInput().openAPI(openAPI).config(codegen));
-        var dryRunTMan = ((DryRunTemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
+        var dryRunTMan = ((TemplateManager) generator.getTemplateProcessor()).enableTemplateDataCapturing();
         generator.generate();
 
         // tag-one: owns /foo/bar/one and /foo/bar/two
